@@ -1,0 +1,11 @@
+# python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# env vars
+.env
+*.egg-info/
+
+# auto genned output directory
+output/
