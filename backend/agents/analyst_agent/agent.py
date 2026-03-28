@@ -1,15 +1,16 @@
 """
-SickSense — Analyst Agent.
+SickSense — Analyst Agent (LoopAgent with self-correction).
 
 The Analyst takes raw health data from the Scout and performs anomaly detection
-and cross-referencing to determine threat levels. Uses Gemini's reasoning
-to identify patterns across data sources.
+and cross-referencing to determine threat levels.  It is wrapped in a LoopAgent
+so it can validate and self-correct its own assessment before returning.
 Exposed as an A2A server on port 8002.
 """
 
 import json
 
-from google.adk.agents import Agent
+from google.adk.agents import Agent, LoopAgent
+from google.adk.tools import ToolContext
 
 
 def analyze_data_for_anomalies(raw_data: str) -> dict:
@@ -82,30 +83,119 @@ def analyze_data_for_anomalies(raw_data: str) -> dict:
     }
 
 
-root_agent = Agent(
-    name="analyst_agent",
+def validate_assessment(assessment_text: str) -> dict:
+    """Validate a draft threat assessment for internal consistency.
+
+    This tool checks whether the analyst's draft assessment is logically
+    consistent. It returns a validation checklist that the analyst must
+    use to decide whether to accept or revise its assessment.
+
+    Args:
+        assessment_text: The full text of the analyst's draft threat
+            assessment, including threat_score, threat_level, anomalies,
+            and cross_references.
+
+    Returns:
+        dict with a validation checklist of consistency rules to verify.
+    """
+    return {
+        "validation_checklist": [
+            "Does the threat_score numerically match the threat_level label? "
+            "(e.g., score 25 should be 'low', not 'moderate')",
+            "Are ALL data sources accounted for in the anomalies list, even "
+            "those with no anomaly (listed as 'normal')?",
+            "Does every cross_reference cite specific numbers from the raw data?",
+            "Are the identified_conditions supported by at least 2 corroborating "
+            "data sources?",
+            "If pollen is HIGH and the condition is 'respiratory illness', was "
+            "the allergy vs. infection distinction explicitly addressed?",
+            "Is the threat_score inflated by hallucinated data not present in "
+            "the original scout report?",
+        ],
+        "action": (
+            "Review each item above against your draft. If ANY check fails, "
+            "you MUST revise the assessment and output the corrected version. "
+            "If ALL checks pass, call the finalize_assessment tool to lock in "
+            "your result and exit the validation loop."
+        ),
+    }
+
+
+def finalize_assessment(
+    final_assessment: str, tool_context: ToolContext
+) -> dict:
+    """Finalize and lock in the validated threat assessment.
+
+    Call this tool ONLY after all validation checks have passed.
+    It signals that the self-correction loop is complete and the
+    assessment is ready to be sent to the Advisor Agent.
+
+    Args:
+        final_assessment: The complete, validated threat assessment text.
+        tool_context: Injected by ADK — provides access to loop control.
+
+    Returns:
+        dict confirming the assessment has been finalized.
+    """
+    tool_context.actions.escalate = True
+    return {
+        "status": "ASSESSMENT VALIDATED — FINALIZED",
+        "message": "Self-correction loop complete. Assessment locked in.",
+    }
+
+
+# ── Inner analysis agent ────────────────────────────────────────────────────
+
+_analysis_agent = Agent(
+    name="analyst_core",
     model="gemini-3-flash-preview",
     description=(
-        "Anomaly detection analyst for SickSense. Examines collected health data "
-        "to identify statistical anomalies, cross-references signals across sources, "
-        "and produces a threat assessment with confidence scores."
+        "Core anomaly detection analyst. Examines collected health data, "
+        "identifies statistical anomalies, cross-references signals, and "
+        "produces a threat assessment with confidence scores."
     ),
     instruction=(
-        "You are the Analyst Agent for SickSense. You receive raw health data collected "
-        "by the Scout Agent and must analyze it for signs of a local health outbreak.\n\n"
-        "Your job:\n"
-        "1. Call the analyze_data_for_anomalies tool with the raw data to get the analysis framework\n"
-        "2. Apply the framework to the actual data provided\n"
-        "3. For each data source, determine if there are anomalies and their severity\n"
-        "4. Cross-reference signals (e.g., pharmacy stock low + hospital busy + social mentions high)\n"
-        "5. Differentiate between allergies and actual illness using environmental context\n"
-        "6. Produce a final assessment with:\n"
+        "You are the Analyst Agent for SickSense, running inside a self-correction "
+        "loop. You receive raw health data collected by the Scout Agent and must "
+        "analyze it for signs of a local health outbreak.\n\n"
+        "PHASE 1 — DRAFT ASSESSMENT:\n"
+        "1. Call the analyze_data_for_anomalies tool with the raw data to get "
+        "   the analysis framework.\n"
+        "2. Apply the framework to the actual data provided.\n"
+        "3. For each data source, determine if there are anomalies and their severity.\n"
+        "4. Cross-reference signals (e.g., pharmacy stock low + hospital busy + "
+        "   social mentions high).\n"
+        "5. Differentiate between allergies and actual illness using environmental context.\n"
+        "6. Produce a DRAFT assessment with:\n"
         "   - threat_score: 0-100 integer\n"
         "   - threat_level: none / low / moderate / high / critical\n"
         "   - identified_conditions: list of suspected conditions\n"
         "   - anomalies: list of specific anomalies found with source and severity\n"
         "   - cross_references: observations about correlated signals\n\n"
-        "Be data-driven and specific. Cite actual numbers from the data."
+        "PHASE 2 — SELF-VALIDATION:\n"
+        "7. Call the validate_assessment tool with your draft assessment text.\n"
+        "8. Carefully check every item in the validation checklist against your draft.\n"
+        "9. If ANY check fails, revise your assessment and call validate_assessment "
+        "   again with the corrected version.\n"
+        "10. Once ALL checks pass, call the finalize_assessment tool with your "
+        "    complete final assessment to lock it in and exit the loop.\n\n"
+        "IMPORTANT: You MUST call finalize_assessment when done. Do NOT just output "
+        "text — the loop will not stop until you call finalize_assessment.\n\n"
+        "Be data-driven and specific. Cite actual numbers from the data. "
+        "Never fabricate data points that were not in the scout report."
     ),
-    tools=[analyze_data_for_anomalies],
+    tools=[analyze_data_for_anomalies, validate_assessment, finalize_assessment],
+)
+
+# ── Root LoopAgent (self-correction wrapper) ─────────────────────────────────
+
+root_agent = LoopAgent(
+    name="analyst_agent",
+    description=(
+        "Self-correcting anomaly detection analyst for SickSense. Wraps the "
+        "core analyst in a loop that validates its own threat assessment for "
+        "internal consistency and catches hallucinations before returning."
+    ),
+    sub_agents=[_analysis_agent],
+    max_iterations=3,
 )

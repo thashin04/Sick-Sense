@@ -40,26 +40,31 @@ FEED_CONFIG = {
         "type": "orlando_xml",
         "url": "https://www1.cityoforlando.net/opd/activecalls/activecadfire.xml",
         "source": "orlando_cad",
+        "snapshot": True,   # only shows currently-active calls
     },
     "tampa": {
         "type": "tampa_json",
         "url": "https://ncapps.tampagov.net/callsforservice/TFR/Json",
         "source": "tampa_cad",
+        "snapshot": False,  # rolling log
     },
     "miami": {
         "type": "miami_html",
         "url": "https://www.miamidade.gov/firecalls/calls.html",
         "source": "miami_cad",
+        "snapshot": True,   # only shows currently-active calls
     },
     "gainesville": {
         "type": "pulsepoint",
         "agency_id": "EMS1296",
         "source": "pulsepoint",
+        "snapshot": False,  # active + 100 recent
     },
     "fort lauderdale": {
         "type": "pulsepoint",
         "agency_id": "10192",
         "source": "pulsepoint",
+        "snapshot": False,  # active + 100 recent
     },
 }
 
@@ -272,12 +277,12 @@ async def _fetch_pulsepoint(agency_id: str) -> list[ActiveEMSCall]:
 # ---------------------------------------------------------------------------
 
 _TS_FORMATS = [
-    "%Y-%m-%dT%H:%M:%SZ",       # PulsePoint: 2026-03-26T20:15:29Z
-    "%Y-%m-%dT%H:%M:%S",        # ISO without Z
-    "%m/%d/%Y %I:%M:%S %p",     # Orlando: 03/26/2026 04:15:29 PM
-    "%m/%d/%Y %H:%M:%S",        # Orlando alt
-    "%m/%d/%Y %I:%M %p",        # Miami: 03/26/2026 4:15 PM
-    "%m/%d/%Y %H:%M",           # Miami alt
+    "%Y-%m-%dT%H:%M:%SZ",
+    "%Y-%m-%dT%H:%M:%S",
+    "%m/%d/%Y %I:%M:%S %p",
+    "%m/%d/%Y %H:%M:%S",
+    "%m/%d/%Y %I:%M %p",
+    "%m/%d/%Y %H:%M",
 ]
 
 
@@ -313,14 +318,15 @@ def _filter_recent(calls: list[ActiveEMSCall], hours: int = 24) -> list[ActiveEM
 # Main collector
 # ---------------------------------------------------------------------------
 
-async def _fetch_live(city: str) -> tuple[list[ActiveEMSCall], str]:
-    """Fetch live calls for a city. Returns (calls, source)."""
+async def _fetch_live(city: str) -> tuple[list[ActiveEMSCall], str, bool]:
+    """Fetch live calls for a city. Returns (calls, source, is_snapshot)."""
     config = FEED_CONFIG.get(city.lower())
     if not config:
-        return [], "mock"
+        return [], "mock", False
 
     feed_type = config["type"]
     source = config["source"]
+    is_snapshot = config.get("snapshot", False)
 
     if feed_type == "orlando_xml":
         calls = await _fetch_orlando(config["url"])
@@ -331,16 +337,20 @@ async def _fetch_live(city: str) -> tuple[list[ActiveEMSCall], str]:
     elif feed_type == "pulsepoint":
         calls = await _fetch_pulsepoint(config["agency_id"])
     else:
-        return [], "mock"
+        return [], "mock", False
 
     # Only keep calls from the last 24 hours
     calls = _filter_recent(calls)
 
-    return calls, source
+    return calls, source, is_snapshot
 
 
-def _categorize_calls(active_calls: list[ActiveEMSCall]) -> list[EMSCall]:
-    """Categorize raw calls into health-relevant types with counts."""
+def _categorize_calls(active_calls: list[ActiveEMSCall], is_snapshot: bool = False) -> list[EMSCall]:
+    """Categorize raw calls into health-relevant types with counts.
+    
+    For snapshot feeds (only show currently-active calls), typical_count
+    is scaled to an hourly rate so comparisons are apples-to-apples.
+    """
     category_counts: Counter = Counter()
 
     for call in active_calls:
@@ -351,8 +361,10 @@ def _categorize_calls(active_calls: list[ActiveEMSCall]) -> list[EMSCall]:
     # Build EMSCall list, ensuring all known categories are present
     typical_map = {ct["call_type"]: ct["typical_daily"] for ct in CALL_TYPES}
     ems_calls = []
-    for call_type, typical in typical_map.items():
+    for call_type, daily_typical in typical_map.items():
         count = category_counts.get(call_type, 0)
+        # For snapshot feeds, scale typical to hourly expectation
+        typical = max(1, daily_typical // 24) if is_snapshot else daily_typical
         ems_calls.append(EMSCall(
             call_type=call_type,
             count=count,
@@ -401,7 +413,7 @@ async def collect(city: str) -> EMSReport:
         EMSReport with categorized call counts and raw active calls.
     """
     try:
-        active_calls, source = await _fetch_live(city)
+        active_calls, source, is_snapshot = await _fetch_live(city)
 
         if not active_calls:
             # No live feed or empty response — fall back to mock
@@ -410,7 +422,7 @@ async def collect(city: str) -> EMSReport:
             return report
 
         # Categorize into health-relevant types
-        ems_calls = _categorize_calls(active_calls)
+        ems_calls = _categorize_calls(active_calls, is_snapshot=is_snapshot)
         total = sum(c.count for c in ems_calls)
 
         report = EMSReport(
