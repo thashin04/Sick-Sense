@@ -91,10 +91,20 @@ class EMSCall(BaseModel):
     typical_count: int
 
 
+class ActiveEMSCall(BaseModel):
+    """A single raw EMS/fire dispatch call from a live feed."""
+    incident_id: str = ""
+    timestamp: str = ""
+    description: str = ""        # "Medical Emergency", "MEDICAL", "ME", etc.
+    location: str = ""
+    agency: str = ""
+
+
 class EMSReport(BaseModel):
     city: str
     timestamp: datetime
     calls: list[EMSCall]
+    active_calls: list[ActiveEMSCall] = []
     total_health_calls: int = 0
     source: str = "mock"
 
