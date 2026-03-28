@@ -10,7 +10,7 @@ from google.genai import types
 
 from backend.config.cities import FLORIDA_CITIES, get_city
 from backend.orchestrator import create_orchestrator
-from backend.db.firebase import save_self_report
+from backend.db.firebase import save_self_report, get_city_summary
 
 app = FastAPI(
     title="SickSense API",
@@ -137,6 +137,21 @@ async def scan_city(request: ScanRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Scan failed: {str(e)}")
+
+
+@app.get("/api/city/{city}/summary")
+async def get_city_health_summary(city: str):
+    """Retrieve the latest structured virus risks and OTC stock for a city."""
+    try:
+        city_cfg = get_city(city)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    summary = get_city_summary(city_cfg.name)
+    if not summary:
+        raise HTTPException(status_code=404, detail=f"No summary found for {city_cfg.name}")
+        
+    return summary
 
 
 @app.post("/api/scan/all")

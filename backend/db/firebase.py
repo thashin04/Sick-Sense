@@ -99,3 +99,22 @@ def get_recent_self_reports(city: str, days: int = 7) -> list[dict]:
     except Exception as e:
         print(f"[Firebase] Error retrieving self reports: {e}")
         return []
+
+def get_city_summary(city: str) -> dict | None:
+    """
+    Retrieves the latest structured health summary for a specific city.
+    """
+    db = init_firebase()
+    if not db:
+        return None
+
+    try:
+        doc_ref = db.collection("city_health_summaries").document(city)
+        doc = doc_ref.get()
+        if doc.exists:
+            return doc.to_dict()
+        return None
+    except Exception as e:
+        print(f"[Firebase] Error retrieving city summary: {e}")
+        return None
+
