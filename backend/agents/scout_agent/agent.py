@@ -23,6 +23,7 @@ from backend.collectors import (
     cdc_outbreaks,
 )
 from backend.config.schemas import CityDataSnapshot
+from backend.db.firebase import save_health_data
 
 
 async def collect_pharmacy_data(city: str) -> dict:
@@ -36,7 +37,9 @@ async def collect_pharmacy_data(city: str) -> dict:
         current vs typical stock levels, and percent remaining.
     """
     report = await pharmacy.collect(city)
-    return report.model_dump(mode="json")
+    data = report.model_dump(mode="json")
+    save_health_data(city, "pharmacy", data)
+    return data
 
 
 async def collect_pollen_data(city: str) -> dict:
@@ -50,7 +53,9 @@ async def collect_pollen_data(city: str) -> dict:
         and health recommendations.
     """
     report = await pollen.collect(city)
-    return report.model_dump(mode="json")
+    data = report.model_dump(mode="json")
+    save_health_data(city, "pollen", data)
+    return data
 
 
 async def collect_air_quality_data(city: str) -> dict:
@@ -64,7 +69,9 @@ async def collect_air_quality_data(city: str) -> dict:
         and health recommendations.
     """
     report = await air_quality.collect(city)
-    return report.model_dump(mode="json")
+    data = report.model_dump(mode="json")
+    save_health_data(city, "air_quality", data)
+    return data
 
 
 async def collect_hospital_busyness_data(city: str) -> dict:
@@ -78,7 +85,9 @@ async def collect_hospital_busyness_data(city: str) -> dict:
         they are elevated compared to typical levels.
     """
     report = await hospital_busyness.collect(city)
-    return report.model_dump(mode="json")
+    data = report.model_dump(mode="json")
+    save_health_data(city, "hospital_busyness", data)
+    return data
 
 
 async def collect_social_media_data(city: str) -> dict:
@@ -92,7 +101,9 @@ async def collect_social_media_data(city: str) -> dict:
         and total sickness mentions.
     """
     report = await social_media.collect(city)
-    return report.model_dump(mode="json")
+    data = report.model_dump(mode="json")
+    save_health_data(city, "social_media", data)
+    return data
 
 
 async def collect_google_trends_data(city: str) -> dict:
@@ -106,7 +117,9 @@ async def collect_google_trends_data(city: str) -> dict:
         search terms like 'flu symptoms', 'cold medicine', etc.
     """
     report = await google_trends.collect(city)
-    return report.model_dump(mode="json")
+    data = report.model_dump(mode="json")
+    save_health_data(city, "google_trends", data)
+    return data
 
 
 async def collect_ems_dispatch_data(city: str) -> dict:
@@ -120,7 +133,9 @@ async def collect_ems_dispatch_data(city: str) -> dict:
         compared to typical daily volumes.
     """
     report = await ems_dispatch.collect(city)
-    return report.model_dump(mode="json")
+    data = report.model_dump(mode="json")
+    save_health_data(city, "ems_dispatch", data)
+    return data
 
 
 async def collect_cdc_outbreaks_data(city: str) -> dict:
@@ -133,7 +148,9 @@ async def collect_cdc_outbreaks_data(city: str) -> dict:
         dict with list of active outbreaks including pathogen and status.
     """
     report = await cdc_outbreaks.collect(city)
-    return report.model_dump(mode="json")
+    data = report.model_dump(mode="json")
+    save_health_data(city, "cdc_outbreaks", data)
+    return data
 
 
 root_agent = Agent(

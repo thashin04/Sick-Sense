@@ -6,3 +6,4 @@ uvicorn[standard]
 fastapi
 python-dotenv
 pydantic
+firebase-admin
