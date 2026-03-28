@@ -5,6 +5,12 @@
 ## User settings
 xcuserdata/
 
+## Environment variables
+.env
+
+## Firebase
+firebase-key.json
+
 ## Obj-C/Swift specific
 *.hmap
 

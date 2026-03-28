@@ -24,6 +24,7 @@ from backend.collectors import (
     cdc_outbreaks,
 )
 from backend.config.schemas import CityDataSnapshot
+from backend.db.firebase import save_health_data
 
 
 # ── Tool functions (unchanged) ───────────────────────────────────────────────
