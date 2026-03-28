@@ -6,4 +6,8 @@ export type RootStackParamList = {
   Medicine: undefined;
   InsuranceProvider: undefined;
   Tutorial: undefined;
+  Dashboard: undefined;
+  Map: undefined;
+  Advice: undefined;
+  Settings: undefined;
 };

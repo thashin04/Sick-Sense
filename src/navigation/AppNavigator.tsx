@@ -7,6 +7,10 @@ import LanguageScreen from '../screens/LanguageScreen';
 import MedicineScreen from '../screens/MedicineScreen';
 import InsuranceScreen from '../screens/InsuranceScreen';
 import TutorialScreen from '../screens/TutorialScreen';
+import DashboardScreen from '../screens/DashboardScreen';
+import MapScreen from '../screens/MapScreen';
+import AdviceScreen from '../screens/AdviceScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import { RootStackParamList } from '../types/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -22,6 +26,10 @@ export default function AppNavigator() {
         <Stack.Screen name="Medicine" component={MedicineScreen} />
         <Stack.Screen name="InsuranceProvider" component={InsuranceScreen} />
         <Stack.Screen name="Tutorial" component={TutorialScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="Map" component={MapScreen} />
+        <Stack.Screen name="Advice" component={AdviceScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

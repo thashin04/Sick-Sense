@@ -42,8 +42,7 @@ export default function TutorialScreen({ navigation }: Props) {
     if (step < STEPS.length - 1) {
       setStep(step + 1);
     } else {
-      // TODO: navigate to the main app (Dashboard) once that screen exists
-      navigation.navigate('Landing');
+      navigation.navigate('Dashboard');
     }
   }
 

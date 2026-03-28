@@ -1,5 +1,9 @@
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
+import MapboxGL from '@rnmapbox/maps';
+import { MAPBOX_ACCESS_TOKEN } from './src/constants/mapbox';
+
+MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
 import {
   useFonts,
   PlusJakartaSans_400Regular,
