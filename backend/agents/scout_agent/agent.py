@@ -24,7 +24,7 @@ from backend.collectors import (
     cdc_outbreaks,
 )
 from backend.config.schemas import CityDataSnapshot
-from backend.db.firebase import save_health_data
+from backend.db.firebase import save_health_data, get_recent_self_reports
 
 
 # ── Tool functions (unchanged) ───────────────────────────────────────────────
@@ -164,6 +164,24 @@ async def collect_cdc_outbreaks_data(city: str) -> dict:
         return {"error": f"Failed to collect CDC outbreak data for {city}: {str(e)}"}
 
 
+async def collect_self_report_data(city: str) -> dict:
+    """Collect recent user crowdsourced health self-reports for a city.
+
+    Args:
+        city: Name of the Florida city to scan.
+
+    Returns:
+        dict with list of user-submitted health reports from the last 7 days.
+    """
+    try:
+        from backend.config.cities import get_city
+        city_cfg = get_city(city)
+        reports = get_recent_self_reports(city_cfg.name, days=7)
+        return {"self_reports": reports, "count": len(reports)}
+    except Exception as e:
+        return {"error": f"Failed to collect self-report data for {city}: {str(e)}"}
+
+
 # ── Specialist sub-agents (one tool each) ────────────────────────────────────
 
 _SUB_AGENT_INSTRUCTION = (
@@ -239,12 +257,20 @@ cdc_outbreaks_agent = Agent(
     tools=[collect_cdc_outbreaks_data],
 )
 
+self_report_agent = Agent(
+    name="self_report_scout",
+    model="gemini-3-flash-preview",
+    description="Collects recent user-submitted health reports and symptoms for a city.",
+    instruction=_SUB_AGENT_INSTRUCTION,
+    tools=[collect_self_report_data],
+)
+
 # ── ParallelAgent (concurrent data collection) ──────────────────────────────
 
 _parallel_collector = ParallelAgent(
     name="parallel_collector",
     description=(
-        "Runs all 8 specialist scouts simultaneously to collect health data."
+        "Runs all 9 specialist scouts simultaneously to collect health data."
     ),
     sub_agents=[
         pharmacy_agent,
@@ -255,6 +281,7 @@ _parallel_collector = ParallelAgent(
         google_trends_agent,
         ems_dispatch_agent,
         cdc_outbreaks_agent,
+        self_report_agent,
     ],
 )
 
@@ -268,7 +295,7 @@ _aggregator = Agent(
         "comprehensive city health data report."
     ),
     instruction=(
-        "You have just received the outputs from 8 parallel data-collection scouts. "
+        "You have just received the outputs from 9 parallel data-collection scouts. "
         "Your job is to compile ALL of their data into one thorough, well-organized "
         "health data report for the city.\n\n"
         "Structure your report with these sections:\n"
@@ -280,7 +307,8 @@ _aggregator = Agent(
         "6. **Google Trends** — keyword interest scores\n"
         "7. **EMS Dispatch** — call volumes by type\n"
         "8. **CDC Outbreaks** — active outbreaks\n"
-        "9. **Summary Observation** — a brief 2-3 sentence overview noting any "
+        "9. **Self-Reports** — user self-reported symptoms/shortages\n"
+        "10. **Summary Observation** — a brief 2-3 sentence overview noting any "
         "initial signals, elevated categories, or notable patterns\n\n"
         "Include ALL numbers and data points — do not summarize or omit details. "
         "The Analyst Agent downstream needs every data point to do its job. "
@@ -297,7 +325,7 @@ root_agent = SequentialAgent(
     name="scout_agent",
     description=(
         "Data collection scout for SickSense. Uses a ParallelAgent to "
-        "simultaneously gather health-related data from 8 sources, then "
+        "simultaneously gather health-related data from 9 sources, then "
         "aggregates them into a comprehensive city health report."
     ),
     sub_agents=[_parallel_collector, _aggregator],
