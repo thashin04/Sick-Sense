@@ -153,6 +153,25 @@ async def get_city_health_summary(city: str):
         
     return summary
 
+@app.get("/api/city/{city}/daily-report")
+async def get_daily_tts_report(city: str):
+    """Retrieve the synthesized Text-to-Speech script for the Expo Native App."""
+    try:
+        city_cfg = get_city(city)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+        
+    # Lazy init or retrieve active connection
+    from backend.db.firebase import init_firebase
+    db = init_firebase()
+    if not db:
+        raise HTTPException(status_code=500, detail="Database uninitialized")
+        
+    doc = db.collection("daily_tts_reports").document(city).get()
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail=f"No daily TTS script available for {city_cfg.name}")
+        
+    return doc.to_dict()
 
 @app.post("/api/scan/all")
 async def scan_all_cities():
