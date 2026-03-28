@@ -5,6 +5,9 @@
 ## User settings
 xcuserdata/
 
+## Environment variables
+.env
+
 ## Firebase
 firebase-key.json
 
