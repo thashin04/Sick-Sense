@@ -1,0 +1,35 @@
+graph TB
+    subgraph "Frontend - Future"
+        FE["Next.js App"]
+    end
+
+    subgraph "API Layer"
+        API["FastAPI - api.py"]
+    end
+
+    subgraph "Orchestrator"
+        ORC["Root Agent - orchestrator.py"]
+    end
+
+    subgraph "A2A Agents"
+        SA["Scout Agent :8001"]
+        AA["Analyst Agent :8002"]
+        ADV["Advisor Agent :8003"]
+    end
+
+    subgraph "Data Collectors"
+        C1["pharmacy.py - mock"]
+        C2["pollen.py - Google API"]
+        C3["air_quality.py - Google API"]
+        C4["hospital_busyness.py - mock"]
+        C5["social_media.py - Reddit/mock"]
+        C6["google_trends.py - pytrends"]
+        C7["ems_dispatch.py - mock"]
+    end
+
+    FE --> API
+    API --> ORC
+    ORC -->|"A2A"| SA
+    ORC -->|"A2A"| AA
+    ORC -->|"A2A"| ADV
+    SA --> C1 & C2 & C3 & C4 & C5 & C6 & C7
