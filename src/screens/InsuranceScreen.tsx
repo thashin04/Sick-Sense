@@ -41,10 +41,7 @@ export default function InsuranceScreen({ navigation }: Props) {
       onSearch={setSearch}
       onBack={() => navigation.goBack()}
       buttonLabel="Skip for now"
-      onButton={() => {
-        // TODO: navigate to main app
-        navigation.navigate('Landing');
-      }}
+      onButton={() => navigation.navigate('Tutorial')}
     >
       {filtered.map((provider) => {
         const isSelected = selected === provider.id;

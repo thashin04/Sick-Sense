@@ -5,4 +5,5 @@ export type RootStackParamList = {
   Language: undefined;
   Medicine: undefined;
   InsuranceProvider: undefined;
+  Tutorial: undefined;
 };
