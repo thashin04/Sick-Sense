@@ -21,6 +21,10 @@ SCOUT_PORT=8001
 ANALYST_PORT=8002
 ADVISOR_PORT=8003
 API_PORT=8000
+
+# Firebase Auth Configuration
+FIREBASE_API_KEY=your_firebase_api_key_here
+FIREBASE_CREDENTIALS=ServiceAccountKey.json
 ```
 
 ### 3. Firebase Service Account Key

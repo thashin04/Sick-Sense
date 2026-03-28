@@ -49,3 +49,24 @@ def save_health_data(city: str, source: str, data: dict):
     except Exception as e:
         print(f"[Firebase] Error saving to Firestore: {e}")
         return None
+
+def save_self_report(report_data: dict):
+    """
+    Saves a user self-report to the 'self_reports' Firestore collection.
+    Document ID will be automatically generated.
+    """
+    db = init_firebase()
+    if not db:
+        return None
+        
+    try:
+        # Add server-side timestamp as a fallback/record
+        if "timestamp" not in report_data:
+            report_data["timestamp"] = datetime.now(timezone.utc).isoformat()
+            
+        doc_ref = db.collection("self_reports").document()
+        doc_ref.set(report_data)
+        return doc_ref.id
+    except Exception as e:
+        print(f"[Firebase] Error saving self report to Firestore: {e}")
+        return None

@@ -10,6 +10,7 @@ from google.genai import types
 
 from backend.config.cities import FLORIDA_CITIES, get_city
 from backend.orchestrator import create_orchestrator
+from backend.db.firebase import save_self_report
 
 app = FastAPI(
     title="SickSense API",
@@ -42,6 +43,13 @@ class CityInfo(BaseModel):
     lat: float
     lng: float
 
+
+class SelfReportRequest(BaseModel):
+    report_type: str
+    location_type: str
+    location: str
+
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok", "service": "sicksense", "timestamp": datetime.now(timezone.utc).isoformat()}
@@ -53,6 +61,26 @@ async def list_cities():
         CityInfo(key=k, name=v.name, lat=v.lat, lng=v.lng)
         for k, v in FLORIDA_CITIES.items()
     ]
+
+
+@app.post("/api/reports")
+async def submit_self_report(request: SelfReportRequest):
+    """Submit a user self-report about health issues, contacts, or shortages."""
+    try:
+        report_data = {
+            "report_type": request.report_type,
+            "location_type": request.location_type,
+            "location": request.location,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        doc_id = save_self_report(report_data)
+        if not doc_id:
+            raise HTTPException(status_code=500, detail="Failed to save report to database.")
+            
+        return {"status": "success", "id": doc_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Submission failed: {str(e)}")
 
 
 @app.post("/api/scan", response_model=ScanResponse)
