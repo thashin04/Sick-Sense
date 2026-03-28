@@ -9,3 +9,6 @@ __pycache__/
 
 # auto genned output directory
 output/
+
+# session database form testing voice agents
+session.db
