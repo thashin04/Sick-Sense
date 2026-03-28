@@ -277,12 +277,12 @@ async def _fetch_pulsepoint(agency_id: str) -> list[ActiveEMSCall]:
 # ---------------------------------------------------------------------------
 
 _TS_FORMATS = [
-    "%Y-%m-%dT%H:%M:%SZ",       
-    "%Y-%m-%dT%H:%M:%S",        
-    "%m/%d/%Y %I:%M:%S %p",     
-    "%m/%d/%Y %H:%M:%S",        
-    "%m/%d/%Y %I:%M %p",        
-    "%m/%d/%Y %H:%M",           
+    "%Y-%m-%dT%H:%M:%SZ",
+    "%Y-%m-%dT%H:%M:%S",
+    "%m/%d/%Y %I:%M:%S %p",
+    "%m/%d/%Y %H:%M:%S",
+    "%m/%d/%Y %I:%M %p",
+    "%m/%d/%Y %H:%M",
 ]
 
 

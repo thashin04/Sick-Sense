@@ -59,6 +59,7 @@ def run_js_in_safari(js_code: str, timeout: int = 20) -> str:
             set jsFile to POSIX file "{js_path}"
             set jsCode to read jsFile
             tell application "Safari"
+                -- Target the front window (even if miniaturized)
                 set jsResult to do JavaScript jsCode in current tab of front window
                 return jsResult
             end tell
@@ -77,8 +78,11 @@ def open_maps_page(query: str, wait_seconds: int = 10) -> str:
 
     run_applescript(f'''
         tell application "Safari"
-            activate
-            open location "{url}"
+            -- Create a GUARANTEED new window (not a tab) to avoid mixing with Dev UI
+            make new document with properties {{URL: "{url}"}}
+            delay 1
+            -- Move window off-screen to avoid disrupting the user
+            set bounds of window 1 to {{2500, 2500, 3200, 3000}}
         end tell
     ''')
 
