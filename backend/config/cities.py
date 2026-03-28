@@ -8,6 +8,7 @@ class CityConfig:
     subreddit: str
     trends_geo: str
     hospitals: list[str]
+    nextdoor_slug: str = ""  # e.g. "orlando--fl" for nextdoor.com/city/orlando--fl/
 
 
 FLORIDA_CITIES: dict[str, CityConfig] = {
@@ -18,6 +19,7 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         subreddit="Tallahassee",
         trends_geo="US-FL-530",
         hospitals=["Tallahassee Memorial Hospital", "Capital Regional Medical Center"],
+        nextdoor_slug="tallahassee--fl",
     ),
     "gainesville": CityConfig(
         name="Gainesville",
@@ -26,6 +28,7 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         subreddit="GNV",
         trends_geo="US-FL-592",
         hospitals=["UF Health Shands Hospital", "North Florida Regional Medical Center"],
+        nextdoor_slug="gainesville--fl",
     ),
     "jacksonville": CityConfig(
         name="Jacksonville",
@@ -34,6 +37,7 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         subreddit="jacksonville",
         trends_geo="US-FL-561",
         hospitals=["Baptist Medical Center", "Mayo Clinic Jacksonville"],
+        nextdoor_slug="jacksonville--fl",
     ),
     "tampa": CityConfig(
         name="Tampa",
@@ -42,6 +46,7 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         subreddit="tampa",
         trends_geo="US-FL-539",
         hospitals=["Tampa General Hospital", "St. Joseph's Hospital"],
+        nextdoor_slug="tampa--fl",
     ),
     "orlando": CityConfig(
         name="Orlando",
@@ -50,6 +55,7 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         subreddit="orlando",
         trends_geo="US-FL-534",
         hospitals=["Orlando Regional Medical Center", "AdventHealth Orlando"],
+        nextdoor_slug="orlando--fl",
     ),
     "miami": CityConfig(
         name="Miami",
@@ -58,6 +64,7 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         subreddit="Miami",
         trends_geo="US-FL-528",
         hospitals=["Jackson Memorial Hospital", "Mercy Hospital"],
+        nextdoor_slug="miami--fl",
     ),
     "fort_lauderdale": CityConfig(
         name="Fort Lauderdale",
@@ -66,6 +73,7 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         subreddit="fortlauderdale",
         trends_geo="US-FL-528",
         hospitals=["Broward Health Medical Center", "Holy Cross Hospital"],
+        nextdoor_slug="fort-lauderdale--fl",
     ),
 }
 
