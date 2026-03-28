@@ -144,6 +144,58 @@ def finalize_assessment(
     }
 
 
+def save_risk_and_stock_to_db(
+    city: str,
+    seasonal_flu_risk: str,
+    common_cold_risk: str,
+    other_viruses_risk: dict,
+    otc_stock: list[dict]
+) -> dict:
+    """Save the local risk levels and OTC stock status to the database.
+
+    Args:
+        city: The name of the city.
+        seasonal_flu_risk: Risk level for Seasonal Flu (e.g., 'Low', 'High').
+        common_cold_risk: Risk level for Common Cold (e.g., 'Low', 'High').
+        other_viruses_risk: Dictionary mapping any other suspected viruses/illnesses to their risk levels based on the data.
+        otc_stock: List of dictionaries. Each must contain 'name' (medication name), 'status' ('In Stock' or 'Limited'), and 'stock_level' (the raw percentage or count).
+
+    Returns:
+        dict confirming save success or failure.
+    """
+    from backend.db.firebase import init_firebase
+    from datetime import datetime, timezone
+    
+    db = init_firebase()
+    if not db:
+        return {"error": "Firebase not initialized."}
+        
+    try:
+        doc_ref = db.collection("city_health_summaries").document(city)
+        now_iso = datetime.now(timezone.utc).isoformat()
+        
+        doc_ref.set({
+            "city": city,
+            "timestamp": now_iso,
+            "local_risk_levels": {
+                "seasonal_flu": seasonal_flu_risk,
+                "common_cold": common_cold_risk,
+                **other_viruses_risk
+            },
+            "otc_stock": [
+                {
+                    "name": item.get("name"),
+                    "status": item.get("status"),
+                    "stock_level": item.get("stock_level"),
+                    "updated_at": now_iso
+                } for item in otc_stock
+            ]
+        })
+        return {"status": "SUCCESS", "message": f"Saved summary for {city} to city_health_summaries."}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 # ── Inner analysis agent ────────────────────────────────────────────────────
 
 _analysis_agent = Agent(
@@ -177,14 +229,18 @@ _analysis_agent = Agent(
         "8. Carefully check every item in the validation checklist against your draft.\n"
         "9. If ANY check fails, revise your assessment and call validate_assessment "
         "   again with the corrected version.\n"
-        "10. Once ALL checks pass, call the finalize_assessment tool with your "
+        "10. Once ALL checks pass, you MUST call save_risk_and_stock_to_db to persist specific data:\n"
+        "    - Determine localized risk levels for Seasonal Flu and Common Cold based on the data.\n"
+        "    - Identify ANY other specific sicknesses (e.g. COVID, stomach bug, strep) active in the area and their risk levels.\n"
+        "    - Extract OTC stock data. Set status to 'Limited' if stock < 50%, else 'In Stock'. Include the absolute stock_level value.\n"
+        "11. After saving, call the finalize_assessment tool with your "
         "    complete final assessment to lock it in and exit the loop.\n\n"
         "IMPORTANT: You MUST call finalize_assessment when done. Do NOT just output "
         "text — the loop will not stop until you call finalize_assessment.\n\n"
         "Be data-driven and specific. Cite actual numbers from the data. "
         "Never fabricate data points that were not in the scout report."
     ),
-    tools=[analyze_data_for_anomalies, validate_assessment, finalize_assessment],
+    tools=[analyze_data_for_anomalies, validate_assessment, save_risk_and_stock_to_db, finalize_assessment],
 )
 
 # ── Root LoopAgent (self-correction wrapper) ─────────────────────────────────
