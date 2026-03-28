@@ -11,6 +11,7 @@ from google.genai import types
 from backend.config.cities import FLORIDA_CITIES, get_city
 from backend.orchestrator import create_orchestrator
 from backend.db.firebase import save_self_report, get_city_summary
+from backend.api_insurance import router as insurance_router
 
 app = FastAPI(
     title="SickSense API",
@@ -25,6 +26,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(insurance_router)
 
 class ScanRequest(BaseModel):
     city: str
