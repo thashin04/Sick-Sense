@@ -70,3 +70,32 @@ def save_self_report(report_data: dict):
     except Exception as e:
         print(f"[Firebase] Error saving self report to Firestore: {e}")
         return None
+
+def get_recent_self_reports(city: str, days: int = 7) -> list[dict]:
+    """
+    Retrieves user self-reports for a specific city within the last X days.
+    """
+    db = init_firebase()
+    if not db:
+        return []
+
+    try:
+        from datetime import timedelta
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff_iso = cutoff_date.isoformat()
+
+        docs = (
+            db.collection("self_reports")
+            .where("location", "==", city)
+            .where("timestamp", ">=", cutoff_iso)
+            .stream()
+        )
+        
+        reports = []
+        for doc in docs:
+            reports.append(doc.to_dict())
+            
+        return reports
+    except Exception as e:
+        print(f"[Firebase] Error retrieving self reports: {e}")
+        return []

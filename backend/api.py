@@ -67,10 +67,15 @@ async def list_cities():
 async def submit_self_report(request: SelfReportRequest):
     """Submit a user self-report about health issues, contacts, or shortages."""
     try:
+        try:
+            city_cfg = get_city(request.location)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid location. Must be a supported Florida city.")
+            
         report_data = {
             "report_type": request.report_type,
             "location_type": request.location_type,
-            "location": request.location,
+            "location": city_cfg.name,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
