@@ -93,27 +93,61 @@ def open_maps_page(query: str, wait_seconds: int = 10) -> str:
     return title
 
 
-def click_first_result() -> str:
+def click_first_result(target_name: str = "") -> str:
     """
-    Click the first search result in Google Maps to open the place detail.
+    Click the search result in Google Maps that best matches the target_name.
+    Skips 'Sponsored' results.
     Returns the name of the place that was clicked, or empty string.
     """
+    # Pass target_name to JS to help it pick the right result
     js = r'''
 (function() {
-    // Google Maps search results are rendered as <a> elements with class "hfpxzc"
-    // inside the results feed. Each one links to a specific place.
+    var target = "TARGET_NAME";
     var links = document.querySelectorAll('a.hfpxzc');
-    if (links.length > 0) {
-        var name = links[0].getAttribute('aria-label') || '';
-        links[0].click();
+    
+    // First pass: look for exact/partial match
+    for (var i = 0; i < links.length; i++) {
+        var link = links[i];
+        var name = link.getAttribute('aria-label') || '';
+        
+        if (target && name.toLowerCase().includes(target.split(',')[0])) {
+            link.click();
+            return name;
+        }
+    }
+    
+    // Second pass: click the first non-sponsored one by checking just its immediate card wrapper
+    for (var i = 0; i < links.length; i++) {
+        var link = links[i];
+        var name = link.getAttribute('aria-label') || '';
+        
+        // Find the specific list item wrapper
+        var card = link.closest && link.closest('[role="article"]');
+        if (!card) {
+            // fallback traversal
+            card = link.parentElement;
+            if(card) card = card.parentElement;
+        }
+        
+        if (card && card.innerText.includes('Sponsored')) continue;
+        
+        link.click();
         return name;
     }
-
+    
     // Fallback: try clicking any result link in the feed panel
     var feedItems = document.querySelectorAll('[role="feed"] a[href*="/maps/place/"]');
-    if (feedItems.length > 0) {
-        var name2 = feedItems[0].getAttribute('aria-label') || feedItems[0].innerText || '';
-        feedItems[0].click();
+    for (var i = 0; i < feedItems.length; i++) {
+        var item = feedItems[i];
+        var card = item.closest && item.closest('[role="article"]');
+        if (!card) {
+            card = item.parentElement;
+            if(card) card = card.parentElement;
+        }
+        if (card && card.innerText.includes('Sponsored')) continue;
+        
+        var name2 = item.getAttribute('aria-label') || item.innerText || '';
+        item.click();
         return name2;
     }
 
@@ -125,7 +159,8 @@ def click_first_result() -> str:
 
     return '';
 })()
-'''
+'''.replace('TARGET_NAME', target_name.replace('"', '\\"').lower())
+
     return run_js_in_safari(js, timeout=10)
 
 

@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
 
 @dataclass(frozen=True)
 class CityConfig:
@@ -9,6 +10,7 @@ class CityConfig:
     trends_geo: str
     hospitals: list[str]
     nextdoor_slug: str = ""  # e.g. "orlando--fl" for nextdoor.com/city/orlando--fl/
+    cvs_store_ids: list[str] = field(default_factory=list)  # CVS store numbers for inventory checks
 
 
 FLORIDA_CITIES: dict[str, CityConfig] = {
@@ -18,8 +20,9 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         lng=-84.2807,
         subreddit="Tallahassee",
         trends_geo="US-FL-530",
-        hospitals=["Tallahassee Memorial Hospital", "Capital Regional Medical Center"],
+        hospitals=["Patients First - Tennessee Street", "Tallahassee Memorial Urgent Care Center on Medical Drive"],
         nextdoor_slug="tallahassee--fl",
+        cvs_store_ids=["2927"],
     ),
     "gainesville": CityConfig(
         name="Gainesville",
@@ -27,8 +30,9 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         lng=-82.3248,
         subreddit="GNV",
         trends_geo="US-FL-592",
-        hospitals=["UF Health Shands Hospital", "North Florida Regional Medical Center"],
+        hospitals=["UF Health Urgent Care Center - Eastside", "CareSpot Urgent Care of Gainesville 43rd Street"],
         nextdoor_slug="gainesville--fl",
+        cvs_store_ids=["2240"],
     ),
     "jacksonville": CityConfig(
         name="Jacksonville",
@@ -36,8 +40,9 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         lng=-81.6557,
         subreddit="jacksonville",
         trends_geo="US-FL-561",
-        hospitals=["Baptist Medical Center", "Mayo Clinic Jacksonville"],
+        hospitals=["CareSpot Urgent Care of Jacksonville Westside", "CareSpot Urgent Care of Jacksonville Southside"],
         nextdoor_slug="jacksonville--fl",
+        cvs_store_ids=["2163"],
     ),
     "tampa": CityConfig(
         name="Tampa",
@@ -45,8 +50,9 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         lng=-82.4572,
         subreddit="tampa",
         trends_geo="US-FL-539",
-        hospitals=["Tampa General Hospital", "St. Joseph's Hospital"],
+        hospitals=["TGH Urgent Care powered by Fast Track (Brandon)", "MD Now Urgent Care - South Tampa"],
         nextdoor_slug="tampa--fl",
+        cvs_store_ids=["2190"],
     ),
     "orlando": CityConfig(
         name="Orlando",
@@ -54,8 +60,9 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         lng=-81.3792,
         subreddit="orlando",
         trends_geo="US-FL-534",
-        hospitals=["Orlando Regional Medical Center", "AdventHealth Orlando"],
+        hospitals=["AdventHealth Primary Care+ Waterford Lakes", "AdventHealth Centra Care Winter Park"],
         nextdoor_slug="orlando--fl",
+        cvs_store_ids=["1314"],
     ),
     "miami": CityConfig(
         name="Miami",
@@ -63,8 +70,9 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         lng=-80.1918,
         subreddit="Miami",
         trends_geo="US-FL-528",
-        hospitals=["Jackson Memorial Hospital", "Mercy Hospital"],
+        hospitals=["UHealth Jackson Urgent Care | Country Walk", "MD Now Urgent Care - Miami Lakes, Hialeah"],
         nextdoor_slug="miami--fl",
+        cvs_store_ids=["3045"],
     ),
     "fort_lauderdale": CityConfig(
         name="Fort Lauderdale",
@@ -72,8 +80,9 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
         lng=-80.1373,
         subreddit="fortlauderdale",
         trends_geo="US-FL-528",
-        hospitals=["Broward Health Medical Center", "Holy Cross Hospital"],
+        hospitals=["MD Now Urgent Care - Fort Lauderdale", "Baptist Health Urgent Care | Weston"],
         nextdoor_slug="fort-lauderdale--fl",
+        cvs_store_ids=["2804"],
     ),
 }
 
