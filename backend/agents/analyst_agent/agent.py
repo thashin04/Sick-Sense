@@ -21,7 +21,8 @@ def analyze_data_for_anomalies(raw_data: str) -> dict:
     Args:
         raw_data: JSON string or text containing the Scout Agent's collected
             data for a city, including pharmacy stocks, pollen, air quality,
-            hospital busyness, social media mentions, Google Trends, and EMS data.
+            hospital busyness, social media mentions, Google Trends, EMS data,
+            and CDC Outbreaks.
 
     Returns:
         dict with analysis framework including signal categories and
@@ -48,6 +49,10 @@ def analyze_data_for_anomalies(raw_data: str) -> dict:
             "ems_signals": {
                 "description": "Check if respiratory/fever calls exceed typical by >25%",
                 "threshold": "Calls > 125% typical = anomaly, > 150% = severe",
+            },
+            "cdc_signals": {
+                "description": "Check if there are active outbreaks matching local symptoms",
+                "threshold": "Active CDC Outbreak matching local signals = high concern",
             },
             "environmental_context": {
                 "description": "Pollen and AQI help differentiate allergies from infections",

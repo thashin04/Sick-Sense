@@ -1,7 +1,7 @@
 """
 SickSense — Scout Agent.
 
-The Scout is the data-collection workhorse. It calls all 7 data collectors
+The Scout is the data-collection workhorse. It calls all 8 data collectors
 for a given city and aggregates the results into a unified CityDataSnapshot.
 Exposed as an A2A server on port 8001.
 """
@@ -20,6 +20,7 @@ from backend.collectors import (
     social_media,
     google_trends,
     ems_dispatch,
+    cdc_outbreaks,
 )
 from backend.config.schemas import CityDataSnapshot
 
@@ -122,17 +123,30 @@ async def collect_ems_dispatch_data(city: str) -> dict:
     return report.model_dump(mode="json")
 
 
+async def collect_cdc_outbreaks_data(city: str) -> dict:
+    """Collect current sickness outbreaks globally and nationally via CDC.
+
+    Args:
+        city: Name of the Florida city to scan.
+
+    Returns:
+        dict with list of active outbreaks including pathogen and status.
+    """
+    report = await cdc_outbreaks.collect(city)
+    return report.model_dump(mode="json")
+
+
 root_agent = Agent(
     name="scout_agent",
     model="gemini-3-flash-preview",
     description=(
         "Data collection scout for SickSense. Gathers health-related data "
-        "from 7 sources (pharmacy stocks, pollen, air quality, hospital busyness, "
-        "social media, Google Trends, and EMS dispatch) for Florida cities."
+        "from 8 sources (pharmacy stocks, pollen, air quality, hospital busyness, "
+        "social media, Google Trends, EMS dispatch, and CDC Outbreaks) for Florida cities."
     ),
     instruction=(
         "You are the Scout Agent for SickSense, a health outbreak detection system. "
-        "When given a city name, you MUST call ALL 7 data collection tools to gather "
+        "When given a city name, you MUST call ALL 8 data collection tools to gather "
         "comprehensive health data for that city. Call them all and compile the results "
         "into a thorough report. Do not skip any data source. "
         "Present the data clearly organized by source. "
@@ -148,5 +162,6 @@ root_agent = Agent(
         collect_social_media_data,
         collect_google_trends_data,
         collect_ems_dispatch_data,
+        collect_cdc_outbreaks_data,
     ],
 )

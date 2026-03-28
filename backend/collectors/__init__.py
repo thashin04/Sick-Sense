@@ -10,6 +10,7 @@ from backend.collectors import (
     social_media,
     google_trends,
     ems_dispatch,
+    cdc_outbreaks,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "social_media",
     "google_trends",
     "ems_dispatch",
+    "cdc_outbreaks",
 ]

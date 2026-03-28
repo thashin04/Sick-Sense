@@ -99,6 +99,19 @@ class EMSReport(BaseModel):
     source: str = "mock"
 
 
+class CDCOutbreak(BaseModel):
+    pathogen: str
+    locations_affected: list[str]
+    status: str
+    date_updated: str
+    description: str
+
+class CDCOutbreakReport(BaseModel):
+    city: str
+    timestamp: datetime
+    active_outbreaks: list[CDCOutbreak]
+    source: str = "cdc_ai_scraper"
+
 class CityDataSnapshot(BaseModel):
     """Everything the Scout collects for one city."""
     city: str
@@ -110,6 +123,7 @@ class CityDataSnapshot(BaseModel):
     social_media: Optional[SocialMediaReport] = None
     google_trends: Optional[GoogleTrendsReport] = None
     ems: Optional[EMSReport] = None
+    cdc_outbreaks: Optional[CDCOutbreakReport] = None
 
 class ThreatLevel(str, Enum):
     NONE = "none"
