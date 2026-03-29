@@ -12,6 +12,7 @@ import { Image } from 'react-native';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 import InNetworkModal from '../components/modals/InNetworkModal';
+import HelpModal from '../components/modals/HelpModal';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Advice'>;
@@ -98,6 +99,7 @@ export default function AdviceScreen({ navigation }: Props) {
   const { selectedCity } = useLocation();
   const [inNetworkOpen, setInNetworkOpen] = React.useState(false);
   const [cityPickerOpen, setCityPickerOpen] = React.useState(false);
+  const [helpOpen, setHelpOpen] = React.useState(false);
   const [tips, setTips] = React.useState<ActionableTip[]>(ACTIONABLE_TIPS);
   const [risks, setRisks] = React.useState<RiskAnalysisItem[]>(RISK_ITEMS);
   const [forecast, setForecast] = React.useState('Moderate');
@@ -188,7 +190,7 @@ export default function AdviceScreen({ navigation }: Props) {
                   <Text style={[styles.locationTxt, { color: theme.heading }]}>{selectedCity}</Text>
                   <Ionicons name="chevron-down" size={14} color={theme.heading} />
                 </TouchableOpacity>
-                <TouchableOpacity hitSlop={12}>
+                <TouchableOpacity hitSlop={12} onPress={() => setHelpOpen(true)}>
                   <Ionicons name="information-circle-outline" size={26} color={theme.heading} />
                 </TouchableOpacity>
               </View>
@@ -308,6 +310,7 @@ export default function AdviceScreen({ navigation }: Props) {
         insurancePlan="Florida Blue"
       />
       <CityPickerModal visible={cityPickerOpen} onClose={() => setCityPickerOpen(false)} />
+      <HelpModal visible={helpOpen} onClose={() => setHelpOpen(false)} />
     </View>
   );
 }

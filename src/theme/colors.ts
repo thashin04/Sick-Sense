@@ -13,3 +13,17 @@ export const Colors = {
 } as const;
 
 export type ColorKey = keyof typeof Colors;
+
+export interface ThemeColors {
+  screenBackground: string;
+}
+
+export const LightTheme: ThemeColors = {
+  screenBackground: Colors.cloudBlue,
+
+}
+
+export const DarkTheme: ThemeColors = {
+  screenBackground: Colors.indigo,
+
+}
