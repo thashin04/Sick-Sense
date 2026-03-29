@@ -51,6 +51,27 @@ class SelfReportRequest(BaseModel):
     location: str
 
 
+class AuthSignupRequest(BaseModel):
+    email: str
+    password: str
+    name: str | None = None
+
+
+class AuthLoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class AuthOAuthRequest(BaseModel):
+    id_token: str
+
+class UserPreferencesRequest(BaseModel):
+    uid: str
+    language: str | None = None
+    otc_medicine: list[str] | None = None
+    insurance_provider: str | None = None
+
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok", "service": "sicksense", "timestamp": datetime.now(timezone.utc).isoformat()}
@@ -116,7 +137,7 @@ async def scan_city(request: ScanRequest):
 
         user_message = types.Content(
             role="user",
-            parts=[types.Part(text=f"Scan {city_cfg.name}, Florida for health outbreaks. Run the full pipeline.")],
+            parts=[types.Part(text=f"Scan {city_cfg.name}, Florida for health outbreaks, specifically tracking the risks for Seasonal Flu and Common Cold. Run the full pipeline.")],
         )
 
         final_response = ""
@@ -238,3 +259,66 @@ async def scan_all_cities():
                 "status": "failed",
             })
     return {"results": results, "total": len(results)}
+
+
+# --- AUTHENTICATION ENDPOINTS ---
+
+@app.post("/api/auth/signup")
+async def auth_signup(request: AuthSignupRequest):
+    """Registers a new user using Email/Password custom logic."""
+    from backend.db.firebase import create_user
+    try:
+        user_info = create_user(request.email, request.password, request.name)
+        return {"status": "success", "user": user_info}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.post("/api/auth/login")
+async def auth_login(request: AuthLoginRequest):
+    """Authenticates a user via custom custom Email/Password logic."""
+    from backend.db.firebase import verify_password_login
+    try:
+        user_info = verify_password_login(request.email, request.password)
+        return {"status": "success", "user": user_info}
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.post("/api/auth/oauth")
+async def auth_oauth(request: AuthOAuthRequest):
+    """Verifies a Google/Apple OAuth token and registers/logs in the user."""
+    from backend.db.firebase import verify_oauth_login
+    try:
+        user_info = verify_oauth_login(request.id_token)
+        return {"status": "success", "user": user_info}
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.post("/api/user/preferences")
+async def api_update_user_preferences(request: UserPreferencesRequest):
+    """Updates a user's preferences (language, medicine, insurance)."""
+    from backend.db.firebase import update_user_preferences
+    try:
+        # Pass a dictionary of established values (drop None)
+        prefs_dict = request.model_dump(exclude_unset=True, exclude_none=True, exclude={"uid": True})
+        update_user_preferences(request.uid, prefs_dict)
+        return {"status": "success"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.get("/api/user/{uid}/preferences")
+async def api_get_user_preferences(uid: str):
+    """Retrieves a user's preferences."""
+    from backend.db.firebase import get_user_preferences
+    try:
+        prefs = get_user_preferences(uid)
+        return {"status": "success", "preferences": prefs}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")

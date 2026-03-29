@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   View,
@@ -6,9 +7,9 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, FontSize } from '../../theme';
@@ -21,60 +22,92 @@ interface Props {
 type ReportType = 'feeling-sick' | 'people-sick' | 'empty-shelves' | null;
 type LocationType = 'my-location' | 'search-location';
 
-const REPORT_OPTIONS = [
-  {
-    id: 'feeling-sick' as ReportType,
-    label: "I'm feeling sick",
-    sub: 'Report your symptoms to help track outbreaks',
-    icon: 'alert-circle-outline' as const,
-    iconBg: '#FDECEA',
-    iconColor: Colors.coral,
-  },
-  {
-    id: 'people-sick' as ReportType,
-    label: 'People around me are sick',
-    sub: 'Report illness in your household or workplace',
-    icon: 'people-outline' as const,
-    iconBg: '#FFF8E1',
-    iconColor: '#C8860A',
-  },
-  {
-    id: 'empty-shelves' as ReportType,
-    label: "I'm seeing empty shelves",
-    sub: 'Report medicine or supply shortages',
-    icon: 'cart-outline' as const,
-    iconBg: '#E8F5E9',
-    iconColor: '#2E7D32',
-  },
-];
-
 export default function SelfReportModal({ visible, onClose }: Props) {
+  const { t } = useTranslation();
   const [reportType, setReportType] = useState<ReportType>(null);
   const [locationType, setLocationType] = useState<LocationType>('search-location');
   const [search, setSearch] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const REPORT_OPTIONS = [
+    {
+      id: 'feeling-sick' as ReportType,
+      label: t('self_report.feeling_sick_label'),
+      sub: t('self_report.feeling_sick_sub'),
+      icon: 'alert-circle-outline' as const,
+      iconBg: '#FDECEA',
+      iconColor: Colors.coral,
+    },
+    {
+      id: 'people-sick' as ReportType,
+      label: t('self_report.people_sick_label'),
+      sub: t('self_report.people_sick_sub'),
+      icon: 'people-outline' as const,
+      iconBg: '#FFF8E1',
+      iconColor: '#C8860A',
+    },
+    {
+      id: 'empty-shelves' as ReportType,
+      label: t('self_report.empty_shelves_label'),
+      sub: t('self_report.empty_shelves_sub'),
+      icon: 'cart-outline' as const,
+      iconBg: '#E8F5E9',
+      iconColor: '#2E7D32',
+    },
+  ];
 
   const canContinue =
     reportType !== null &&
     (locationType === 'my-location' || search.trim().length > 0);
 
   function handleClose() {
+    if (isSubmitting) return;
     setReportType(null);
     setLocationType('search-location');
     setSearch('');
     onClose();
   }
 
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const finalLocation = locationType === 'my-location' ? 'Tampa' : search.trim();
+
+      const res = await fetch('http://localhost:8000/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          report_type: reportType,
+          location_type: locationType,
+          location: finalLocation
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to submit report');
+      }
+
+      Alert.alert('Success', 'Thank you! Your report has been submitted anonymously.');
+      handleClose();
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
-      <View style={styles.backdrop}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={handleClose}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <View style={styles.sheet}>
+          <TouchableOpacity activeOpacity={1} style={styles.sheet}>
             {/* Header */}
             <View style={styles.sheetHeader}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.sheetTitle}>Report Health Issue</Text>
+                <Text style={styles.sheetTitle}>{t('self_report.title')}</Text>
                 <Text style={styles.sheetSub}>
-                  Help us track community health by reporting what you're experiencing.
+                  {t('self_report.subtitle')}
                 </Text>
               </View>
               <TouchableOpacity onPress={handleClose} hitSlop={12} style={styles.closeBtn}>
@@ -82,7 +115,7 @@ export default function SelfReportModal({ visible, onClose }: Props) {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <View>
               {/* Report type options */}
               {REPORT_OPTIONS.map((opt) => (
                 <TouchableOpacity
@@ -102,7 +135,7 @@ export default function SelfReportModal({ visible, onClose }: Props) {
               ))}
 
               {/* Location */}
-              <Text style={styles.locationTitle}>Report Location</Text>
+              <Text style={styles.locationTitle}>{t('self_report.location_title')}</Text>
               <View style={styles.locationRow}>
                 <TouchableOpacity
                   style={[
@@ -120,7 +153,7 @@ export default function SelfReportModal({ visible, onClose }: Props) {
                     />
                   </View>
                   <Text style={[styles.locationBtnTxt, locationType === 'my-location' && styles.locationBtnTxtSelected]}>
-                    My Location
+                    {t('self_report.my_location')}
                   </Text>
                 </TouchableOpacity>
 
@@ -140,7 +173,7 @@ export default function SelfReportModal({ visible, onClose }: Props) {
                     />
                   </View>
                   <Text style={[styles.locationBtnTxt, locationType === 'search-location' && styles.locationBtnTxtSelected]}>
-                    Search Location
+                    {t('self_report.search_location')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -150,7 +183,7 @@ export default function SelfReportModal({ visible, onClose }: Props) {
                   <Ionicons name="search-outline" size={16} color="#9CA3AF" style={{ marginRight: 8 }} />
                   <TextInput
                     style={styles.searchInput}
-                    placeholder="Enter city or zip code..."
+                    placeholder={t('self_report.search_placeholder')}
                     placeholderTextColor="#9CA3AF"
                     value={search}
                     onChangeText={setSearch}
@@ -158,24 +191,22 @@ export default function SelfReportModal({ visible, onClose }: Props) {
                   />
                 </View>
               )}
+            </View>
 
-              <TouchableOpacity
-                style={[styles.continueBtn, !canContinue && styles.continueBtnDisabled]}
-                disabled={!canContinue}
-                activeOpacity={0.85}
-                onPress={() => {
-                  // TODO: submit report to backend
-                  handleClose();
-                }}
-              >
-                <Text style={[styles.continueTxt, !canContinue && styles.continueTxtDisabled]}>
-                  Continue
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
+            {/* Submit */}
+            <TouchableOpacity
+              style={[styles.continueBtn, (!canContinue || isSubmitting) && styles.continueBtnDisabled]}
+              disabled={!canContinue || isSubmitting}
+              activeOpacity={0.85}
+              onPress={handleSubmit}
+            >
+              <Text style={[styles.continueTxt, (!canContinue || isSubmitting) && styles.continueTxtDisabled]}>
+                {isSubmitting ? 'Submitting...' : t('common.submit')}
+              </Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
         </KeyboardAvoidingView>
-      </View>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -191,7 +222,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 24,
     padding: 24,
-    maxHeight: '90%',
   },
   sheetHeader: {
     flexDirection: 'row',
@@ -311,8 +341,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 50,
     alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 4,
+    marginTop: 16,
   },
   continueBtnDisabled: {
     backgroundColor: '#E5E7EB',

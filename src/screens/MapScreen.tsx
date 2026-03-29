@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -87,6 +88,7 @@ function scoreColor(score: number) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function MapScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
   const [selectedArea] = useState<AreaDetail>(MILLS50_DETAIL);
@@ -120,7 +122,7 @@ export default function MapScreen({ navigation }: Props) {
             <Ionicons name="search-outline" size={18} color="#9CA3AF" style={{ marginRight: 8 }} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search neighborhood or city..."
+              placeholder={t('map.search_placeholder')}
               placeholderTextColor="#9CA3AF"
               value={search}
               onChangeText={setSearch}
@@ -172,7 +174,7 @@ export default function MapScreen({ navigation }: Props) {
                     'interpolate',
                     ['linear'],
                     ['heatmap-density'],
-                    0,   'rgba(33, 102, 172, 0)',
+                    0, 'rgba(33, 102, 172, 0)',
                     0.1, 'rgba(103, 169, 207, 0.4)',
                     0.3, 'rgba(59, 200, 120, 0.7)',
                     0.5, 'rgba(230, 214, 50, 0.85)',
@@ -213,14 +215,14 @@ export default function MapScreen({ navigation }: Props) {
           <View style={styles.infoCardLeft}>
             <Text style={styles.infoAreaName}>{selectedArea.name}</Text>
             <Text style={styles.infoAreaSub}>
-              {selectedArea.city}, {selectedArea.state}  •  Tap for details
+              {selectedArea.city}, {selectedArea.state}  •  {t('map.tap_for_details')}
             </Text>
             <View style={styles.infoMeta}>
               <View style={styles.riskDot} />
-              <Text style={styles.infoRiskTxt}>High Risk</Text>
+              <Text style={styles.infoRiskTxt}>{t('map.high_risk')}</Text>
               <Text style={styles.infoDivider}>  |  </Text>
               <Text style={styles.infoAlertsTxt}>
-                {selectedArea.alerts.length} Active Alerts
+                {t('map.active_alerts', { count: selectedArea.alerts.length })}
               </Text>
             </View>
           </View>
@@ -234,20 +236,20 @@ export default function MapScreen({ navigation }: Props) {
       <SafeAreaView edges={['bottom']} style={styles.tabBarSafe}>
         <View style={styles.tabBar}>
           {[
-            { icon: 'home-outline' as const, label: 'Home', active: false },
-            { icon: 'map' as const, label: 'Map', active: true },
-            { icon: 'trending-up-outline' as const, label: 'Advice', active: false },
-            { icon: 'settings-outline' as const, label: 'Settings', active: false },
+            { icon: 'home-outline' as const, key: 'Home', label: t('tabs.home'), active: false },
+            { icon: 'map' as const, key: 'Map', label: t('tabs.map'), active: true },
+            { icon: 'trending-up-outline' as const, key: 'Advice', label: t('tabs.advice'), active: false },
+            { icon: 'settings-outline' as const, key: 'Settings', label: t('tabs.settings'), active: false },
           ].map((tab) => (
             <TouchableOpacity
-              key={tab.label}
+              key={tab.key}
               style={styles.tabItem}
               activeOpacity={0.7}
               onPress={() => {
                 if (!tab.active) {
-                  if (tab.label === 'Home') navigation.navigate('Dashboard');
-                  if (tab.label === 'Advice') navigation.navigate('Advice');
-                  if (tab.label === 'Settings') navigation.navigate('Settings');
+                  if (tab.key === 'Home') navigation.navigate('Dashboard');
+                  if (tab.key === 'Advice') navigation.navigate('Advice');
+                  if (tab.key === 'Settings') navigation.navigate('Settings');
                 }
               }}
             >

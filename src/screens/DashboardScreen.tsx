@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -12,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Image } from 'react-native';
 import SelfReportModal from '../components/modals/SelfReportModal';
 import TranscriptModal from '../components/modals/TranscriptModal';
 import HelpModal from '../components/modals/HelpModal';
@@ -26,7 +29,7 @@ type Props = {
 
 export interface RiskLevel {
   name: string;
-  level: 'Low' | 'Medium' | 'High';
+  level: 'Low' | 'Medium' | 'Moderate' | 'High';
   /** Ionicons icon name */
   icon: React.ComponentProps<typeof Ionicons>['name'];
 }
@@ -63,11 +66,24 @@ const TRANSCRIPT =
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getGreeting(): string {
+const BG_IMAGES = {
+  day: require('../assets/light-day.png'),
+  afternoon: require('../assets/light-afternoon.png'),
+  evening: require('../assets/light-evening.png'),
+};
+
+function getHeaderImage() {
   const h = new Date().getHours();
-  if (h < 12) return 'Good Morning';
-  if (h < 18) return 'Good Afternoon';
-  return 'Good Evening';
+  if (h >= 5 && h < 12) return BG_IMAGES.day;
+  if (h >= 12 && h < 17) return BG_IMAGES.afternoon;
+  return BG_IMAGES.evening;
+}
+
+function getGreetingKey(): 'greeting.morning' | 'greeting.afternoon' | 'greeting.evening' {
+  const h = new Date().getHours();
+  if (h < 12) return 'greeting.morning';
+  if (h < 18) return 'greeting.afternoon';
+  return 'greeting.evening';
 }
 
 function formatDate(date: Date): string {
@@ -80,11 +96,11 @@ function formatDate(date: Date): string {
 }
 
 function riskColor(level: RiskLevel['level']) {
-  return level === 'High' ? Colors.coral : level === 'Medium' ? Colors.sunlight : Colors.babyBlue;
+  return level === 'High' ? Colors.coral : (level === 'Medium' || level === 'Moderate') ? Colors.sunlight : Colors.babyBlue;
 }
 
 function riskBarWidth(level: RiskLevel['level']): `${number}%` {
-  return level === 'High' ? '80%' : level === 'Medium' ? '50%' : '22%';
+  return level === 'High' ? '80%' : (level === 'Medium' || level === 'Moderate') ? '50%' : '22%';
 }
 
 function otcStatusColor(status: OtcItem['status']) {
@@ -93,16 +109,6 @@ function otcStatusColor(status: OtcItem['status']) {
   return '#EF4444';
 }
 
-function cloudPath(svgW: number, svgH: number, baseY: number, bumpH: number, n: number): string {
-  const bw = svgW / n;
-  let d = `M 0 ${svgH} L ${svgW} ${svgH} L ${svgW} ${baseY}`;
-  for (let i = n; i > 0; i--) {
-    const lx = (i - 1) * bw;
-    const px = lx + bw / 2;
-    d += ` Q ${px} ${baseY - bumpH} ${lx} ${baseY}`;
-  }
-  return d + ' Z';
-}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -126,70 +132,137 @@ const waveStyles = StyleSheet.create({
 
 export default function DashboardScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
-  const HEADER_H = 210;
-  const cloudSvgH = HEADER_H * 0.38;
+  const { t } = useTranslation();
+  const HEADER_H = 250;
 
   const [selfReportOpen, setSelfReportOpen] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 
+  const [riskLevels, setRiskLevels] = useState<RiskLevel[]>(RISK_LEVELS);
+  const [otcItems, setOtcItems] = useState<OtcItem[]>(OTC_ITEMS);
+
+  useEffect(() => {
+    async function loadSummary() {
+      try {
+        let prefIds: string[] = [];
+        try {
+          const authStr = await AsyncStorage.getItem('@user_auth');
+          if (authStr) {
+            const auth = JSON.parse(authStr);
+            if (auth.uid) {
+              const prefRes = await fetch(`http://localhost:8000/api/user/${auth.uid}/preferences`);
+              if (prefRes.ok) {
+                const prefData = await prefRes.json();
+                if (prefData.preferences && prefData.preferences.otc_medicine) {
+                  prefIds = prefData.preferences.otc_medicine;
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to fetch user preferences from API', e);
+        }
+
+        if (prefIds.length === 0) {
+          const prefStr = await AsyncStorage.getItem('@pref_medicine');
+          prefIds = prefStr ? JSON.parse(prefStr) : [];
+        }
+
+        const ID_TO_NAME: Record<string, string> = {
+          'dayquil': 'DayQuil',
+          'nyquil': 'NyQuil',
+          'tylenol-cold-flu': 'Tylenol Cold & Flu',
+          'mucinex': 'Mucinex',
+          'robitussin': 'Robitussin',
+          'theraflu': 'Theraflu',
+          'claritin': 'Claritin',
+          // Backwards compatibility for old generic category preferences stuck in Firebase
+          'acetaminophen': 'Tylenol Cold & Flu',
+          'ibuprofen': 'Tylenol Cold & Flu', 
+          'antihistamines': 'Claritin',
+          'cough-syrup': 'Robitussin',
+          'decongestant': 'DayQuil',
+          'aspirin': 'DayQuil' // Map missing generic options
+        };
+        const preferredNames = prefIds.map(id => ID_TO_NAME[id]).filter(Boolean);
+
+        const res = await fetch('http://localhost:8000/api/city/Tampa/summary');
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        if (data.local_risk_levels) {
+          const newRisks: RiskLevel[] = [];
+          if (data.local_risk_levels.seasonal_flu) {
+            newRisks.push({ name: 'Seasonal Flu', level: data.local_risk_levels.seasonal_flu, icon: 'nuclear-outline' });
+          }
+          if (data.local_risk_levels.common_cold) {
+            newRisks.push({ name: 'Common Cold', level: data.local_risk_levels.common_cold, icon: 'thermometer-outline' });
+          }
+          // Strictly only showing Seasonal Flu and Common Cold as requested
+          if (newRisks.length > 0) {
+            setRiskLevels(newRisks);
+          }
+        }
+
+        if (data.otc_stock && data.otc_stock.length > 0) {
+          const freshOtc = data.otc_stock
+            .filter((item: any) => preferredNames.length === 0 || preferredNames.includes(item.name))
+            .map((item: any) => ({
+              name: item.name,
+              status: item.status,
+            }));
+          setOtcItems(freshOtc);
+        }
+      } catch (err) {
+        console.error('Failed to load summary', err);
+      }
+    }
+    loadSummary();
+  }, []);
+
   return (
     <View style={styles.root}>
-      {/* ── Yellow header ── */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: Colors.sunlight }}>
-        <LinearGradient
-          colors={['#FFD980', Colors.sunlight]}
-          style={[styles.header, { height: HEADER_H }]}
-        >
-          {/* Top row */}
-          <View style={styles.headerTopRow}>
-            <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
-              <Text style={styles.locationTxt}>Current Location</Text>
-              <Ionicons name="chevron-down" size={14} color={Colors.indigo} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setHelpOpen(true)} hitSlop={12}>
-              <Ionicons name="information-circle-outline" size={26} color={Colors.indigo} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Greeting */}
-          <Text style={styles.dateText}>{formatDate(new Date())}</Text>
-          <Text style={styles.greeting} numberOfLines={2}>
-            {getGreeting()},{'\n'}Thashin
-          </Text>
-
-          {/* Cloud cutout */}
-          <Svg
-            width={width}
-            height={cloudSvgH}
-            style={{ position: 'absolute', bottom: -cloudSvgH * 0.08, left: 0 }}
-          >
-            <Path
-              d={cloudPath(width, cloudSvgH, cloudSvgH * 0.5, 32, 4)}
-              fill={Colors.babyBlue}
-              opacity={0.4}
-            />
-            <Path
-              d={cloudPath(width, cloudSvgH, cloudSvgH * 0.78, 28, 5)}
-              fill={Colors.lightMidBlue}
-            />
-            <Path
-              d={cloudPath(width, cloudSvgH, cloudSvgH, 26, 4)}
-              fill={Colors.cloudBlue}
-            />
-          </Svg>
-        </LinearGradient>
-      </SafeAreaView>
-
-      {/* ── Scrollable content ── */}
+      {/* ── Scrollable content (header scrolls with page) ── */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* ── Header ── */}
+        <View style={styles.headerContainer}>
+          <Image
+            source={getHeaderImage()}
+            style={{ width: '100%', height: HEADER_H + 110 }}
+            resizeMode="cover"
+          />
+          <SafeAreaView edges={['top']} style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}>
+            <View style={[styles.header, { height: HEADER_H }]}>
+              {/* Top row */}
+              <View style={styles.headerTopRow}>
+                <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
+                  <Text style={styles.locationTxt}>{t('common.current_location')}</Text>
+                  <Ionicons name="chevron-down" size={14} color={Colors.indigo} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setHelpOpen(true)} hitSlop={12}>
+                  <Ionicons name="information-circle-outline" size={26} color={Colors.indigo} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ flex: 1 }} />
+              {/* Greeting */}
+              <Text style={styles.dateText}>{formatDate(new Date())}</Text>
+              <Text style={styles.greeting} numberOfLines={2}>
+                {t(getGreetingKey())},{'\n'}Thashin
+              </Text>
+            </View>
+          </SafeAreaView>
+        </View>
+
+        <View style={styles.scrollInner}>
         {/* Daily Health Report */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Daily Health Report</Text>
+        <View style={[styles.card, { marginTop: 20 }]}>
+          <Text style={styles.cardTitle}>{t('dashboard.daily_report_title')}</Text>
           <TouchableOpacity
             style={styles.playerRow}
             activeOpacity={0.7}
@@ -209,41 +282,38 @@ export default function DashboardScreen({ navigation }: Props) {
             style={styles.transcriptLink}
             onPress={() => setTranscriptOpen(true)}
           >
-            <Text style={styles.transcriptLinkTxt}>Show Transcript</Text>
+            <Text style={styles.transcriptLinkTxt}>{t('dashboard.show_transcript')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Self Report */}
         <View style={styles.card}>
-          <View style={styles.selfReportHeader}>
-            <Ionicons name="clipboard-outline" size={20} color={Colors.black} />
-            <Text style={styles.cardTitle}>  Self Report</Text>
-          </View>
+          <Text style={styles.cardTitle}>{t('dashboard.self_report_title')}</Text>
           <Text style={styles.selfReportSub}>
-            Report symptoms, sick contacts, or supply shortages
+            {t('dashboard.self_report_sub')}
           </Text>
           <TouchableOpacity
             style={styles.reportBtn}
             onPress={() => setSelfReportOpen(true)}
             activeOpacity={0.85}
           >
-            <Text style={styles.reportBtnTxt}>Report Health Issue</Text>
+            <Text style={styles.reportBtnTxt}>{t('dashboard.report_btn')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Local Risk Levels */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Local Risk Levels</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.risk_levels_title')}</Text>
           <TouchableOpacity hitSlop={8} onPress={() => navigation.navigate('Map')}>
-            <Text style={styles.sectionLink}>VIEW MAP</Text>
+            <Text style={styles.sectionLink}>{t('dashboard.view_map')}</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.riskRow}>
-          {RISK_LEVELS.map((risk) => (
+          {riskLevels.map((risk) => (
             <View key={risk.name} style={styles.riskCard}>
               <Ionicons name={risk.icon} size={22} color={Colors.indigo} />
               <Text style={styles.riskName}>{risk.name}</Text>
-              <Text style={[styles.riskLevel, { color: riskColor(risk.level) }]}>
+              <Text style={[styles.riskLevel, { color: (risk.level === 'Medium' || risk.level === 'Moderate') ? Colors.black : riskColor(risk.level) }]}>
                 {risk.level}
               </Text>
               <View style={styles.riskBarTrack}>
@@ -260,16 +330,16 @@ export default function DashboardScreen({ navigation }: Props) {
 
         {/* Local OTC Stock */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Local OTC Stock</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.otc_stock_title')}</Text>
           <Text style={styles.sectionMeta}>
             {OTC_STORE}  ·  {OTC_DISTANCE}
           </Text>
         </View>
-        <View style={styles.card}>
-          {OTC_ITEMS.map((item, i) => (
+        <View style={[styles.card, { marginBottom: 32 }]}>
+          {otcItems.map((item, i) => (
             <View
               key={item.name}
-              style={[styles.otcRow, i < OTC_ITEMS.length - 1 && styles.otcRowBorder]}
+              style={[styles.otcRow, i < otcItems.length - 1 && styles.otcRowBorder]}
             >
               <View style={[styles.otcDot, { backgroundColor: otcStatusColor(item.status) }]} />
               <Text style={styles.otcName}>{item.name}</Text>
@@ -284,41 +354,38 @@ export default function DashboardScreen({ navigation }: Props) {
         <View style={styles.tipCard}>
           <View style={styles.tipHeader}>
             <Ionicons name="warning-outline" size={16} color={Colors.sunlight} />
-            <Text style={styles.tipLabel}>  QUICK TIP</Text>
+            <Text style={styles.tipLabel}>  {t('dashboard.quick_tip_label')}</Text>
           </View>
           <Text style={styles.tipBody}>{QUICK_TIP}</Text>
         </View>
 
         <View style={{ height: 16 }} />
+        </View>
       </ScrollView>
 
       {/* ── Bottom Tab Bar ── */}
       <SafeAreaView edges={['bottom']} style={styles.tabBarSafe}>
         <View style={styles.tabBar}>
           {[
-            { icon: 'home' as const, label: 'Home', active: true },
-            { icon: 'map-outline' as const, label: 'Map', active: false },
-            { icon: 'trending-up-outline' as const, label: 'Advice', active: false },
-            { icon: 'settings-outline' as const, label: 'Settings', active: false },
+            { icon: 'home' as const, key: 'Home', label: t('tabs.home'), active: true },
+            { icon: 'map-outline' as const, key: 'Map', label: t('tabs.map'), active: false },
+            { icon: 'trending-up-outline' as const, key: 'Advice', label: t('tabs.advice'), active: false },
+            { icon: 'settings-outline' as const, key: 'Settings', label: t('tabs.settings'), active: false },
           ].map((tab) => (
             <TouchableOpacity
-              key={tab.label}
+              key={tab.key}
               style={styles.tabItem}
               activeOpacity={0.7}
               onPress={() => {
                 if (!tab.active) {
-                  if (tab.label === 'Map') navigation.navigate('Map');
-                  if (tab.label === 'Advice') navigation.navigate('Advice');
-                  if (tab.label === 'Settings') navigation.navigate('Settings');
+                  if (tab.key === 'Map') navigation.navigate('Map');
+                  if (tab.key === 'Advice') navigation.navigate('Advice');
+                  if (tab.key === 'Settings') navigation.navigate('Settings');
                 }
               }}
             >
               <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons
-                  name={tab.active ? tab.icon : tab.icon}
-                  size={22}
-                  color={tab.active ? Colors.white : '#9CA3AF'}
-                />
+                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : '#9CA3AF'} />
               </View>
               <Text style={[styles.tabLabel, tab.active && styles.tabLabelActive]}>
                 {tab.label}
@@ -353,6 +420,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 12,
+    paddingBottom: 16,
     overflow: 'visible',
   },
   headerTopRow: {
@@ -379,17 +447,22 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontFamily: FontFamily.extraBold,
-    fontSize: 30,
+    fontSize: 40,
     color: Colors.indigo,
-    lineHeight: 36,
+    lineHeight: 50,
   },
+
+  // Header container — sized by the image (normal flow), content overlaid absolutely
+  headerContainer: {},
 
   // Scroll
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
+  scrollContent: {},
+  scrollInner: { paddingHorizontal: 16, paddingTop: 16 },
 
   // Card
   card: {
+    marginTop: 4 ,
     backgroundColor: Colors.white,
     borderRadius: 18,
     padding: 18,
@@ -471,6 +544,8 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     fontSize: FontSize.lg,
     color: Colors.indigo,
+    marginTop: 16,
+    marginBottom: 8,
   },
   sectionLink: {
     fontFamily: FontFamily.semiBold,
@@ -550,7 +625,7 @@ const styles = StyleSheet.create({
   tipCard: {
     backgroundColor: '#FFF8E1',
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     borderLeftWidth: 3,
     borderLeftColor: Colors.sunlight,
   },

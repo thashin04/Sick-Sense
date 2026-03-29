@@ -8,7 +8,11 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { loginUser } from '../api/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -25,6 +29,26 @@ type Props = {
 export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in both email and password.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await loginUser(email, password);
+      // Save backend user reference
+      await AsyncStorage.setItem('@user_auth', JSON.stringify(response.user));
+      navigation.navigate('Dashboard');
+    } catch (error: any) {
+      Alert.alert('Login Failed', error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -88,8 +112,17 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text style={styles.forgotTxt}>Forgot Password?</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85}>
-                <Text style={styles.primaryTxt}>Login</Text>
+              <TouchableOpacity 
+                style={styles.primaryBtn} 
+                activeOpacity={0.85}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.primaryTxt}>Login</Text>
+                )}
               </TouchableOpacity>
 
               <View style={styles.footerRow}>

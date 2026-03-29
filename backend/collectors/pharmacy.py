@@ -55,32 +55,7 @@ CVS_PRODUCTS = [
         "name": "Claritin",
         "product_ids": ["1011654", "560929"],
         "typical_stock": 10,
-    },
-    {
-        "name": "Emergen-C",
-        "product_ids": ["374738"],
-        "typical_stock": 12,
-    },
-    {
-        "name": "Halls Cough Drops",
-        "product_ids": ["1011592"],
-        "typical_stock": 15,
-    },
-    {
-        "name": "Vicks VapoRub",
-        "product_ids": ["106682"],
-        "typical_stock": 8,
-    },
-    {
-        "name": "Children's Tylenol",
-        "product_ids": ["312419"],
-        "typical_stock": 8,
-    },
-    {
-        "name": "Pedialyte",
-        "product_ids": ["445476"],
-        "typical_stock": 10,
-    },
+    }
 ]
 
 

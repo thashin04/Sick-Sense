@@ -2,7 +2,135 @@
   "common": {
     "back": "Back",
     "skip_for_now": "Skip for now",
-    "continue": "Continue"
+    "continue": "Continue",
+    "current_location": "Current Location",
+    "change": "Change",
+    "view": "View",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "call": "Call"
+  },
+  "tabs": {
+    "home": "Home",
+    "map": "Map",
+    "advice": "Advice",
+    "settings": "Settings"
+  },
+  "greeting": {
+    "morning": "Good Morning",
+    "afternoon": "Good Afternoon",
+    "evening": "Good Evening"
+  },
+  "dashboard": {
+    "daily_report_title": "Daily Health Report",
+    "show_transcript": "Show Transcript",
+    "self_report_title": "Self Report",
+    "self_report_sub": "Report symptoms, sick contacts, or supply shortages",
+    "report_btn": "Report Health Issue",
+    "risk_levels_title": "Local Risk Levels",
+    "view_map": "VIEW MAP",
+    "otc_stock_title": "Local OTC Stock",
+    "quick_tip_label": "QUICK TIP"
+  },
+  "map": {
+    "search_placeholder": "Search city...",
+    "tap_for_details": "Tap for details",
+    "high_risk": "High Risk",
+    "active_alerts_one": "{{count}} Active Alert",
+    "active_alerts_other": "{{count}} Active Alerts"
+  },
+  "advice": {
+    "page_title": "Health Forecast",
+    "tips_title": "Today's Health Tips",
+    "risk_analysis_title": "Risk Analysis",
+    "in_network_title": "In-Network Care",
+    "in_network_sub": "Find healthcare providers and facilities that accept your insurance plan in your area.",
+    "in_network_btn": "Find In-Network Providers"
+  },
+  "settings": {
+    "title": "Settings",
+    "accessibility": "ACCESSIBILITY",
+    "haptic_label": "Haptic Health Alerts",
+    "haptic_sub": "Vibration feedback for important health updates",
+    "contrast_label": "High-Contrast Map",
+    "contrast_sub": "Enhanced visibility for map risk zones",
+    "audio_speed_label": "Audio Speed",
+    "audio_speed_sub": "Adjust playback speed for voice reports",
+    "notifications": "NOTIFICATIONS",
+    "health_alerts_label": "Health Alerts",
+    "health_alerts_sub": "Get notified about local health risks",
+    "language_region": "LANGUAGE & REGION",
+    "language_label": "Language",
+    "language_current": "English",
+    "privacy": "PRIVACY & SECURITY",
+    "data_privacy_label": "Data Privacy",
+    "data_privacy_sub": "Manage your permissions",
+    "delete_data_label": "Delete All Data",
+    "delete_data_sub": "Purge all account data",
+    "delete_confirm_title": "Delete All Data",
+    "delete_confirm_body": "This will permanently delete your account data. This action cannot be undone."
+  },
+  "self_report": {
+    "title": "Report Health Issue",
+    "subtitle": "Help us track community health by reporting what you're experiencing.",
+    "feeling_sick_label": "I'm feeling sick",
+    "feeling_sick_sub": "Report your symptoms to help track outbreaks",
+    "people_sick_label": "People around me are sick",
+    "people_sick_sub": "Report illness in your household or workplace",
+    "empty_shelves_label": "I'm seeing empty shelves",
+    "empty_shelves_sub": "Report medicine or supply shortages",
+    "location_title": "Report Location",
+    "my_location": "My Location",
+    "search_location": "Search Location",
+    "search_placeholder": "Enter city..."
+  },
+  "transcript_modal": {
+    "title": "Daily Health Report",
+    "meta": "Transcript  ·  {{duration}}"
+  },
+  "help_modal": {
+    "title": "How SickSense Works",
+    "subtitle": "Everything you need to know about your health dashboard.",
+    "dashboard_title": "Dashboard",
+    "dashboard_body": "Your home screen shows a personalized health overview for your current location — including a daily audio report, local disease risk levels, and nearby OTC medication stock.",
+    "audio_title": "Daily Health Report",
+    "audio_body": "Each morning, SickSense generates a short audio briefing summarizing outbreak activity, risk levels, and health tips in your area. Tap the play button to listen, or \"Show Transcript\" to read it.",
+    "risk_title": "Local Risk Levels",
+    "risk_body": "See real-time risk ratings for illnesses like Seasonal Flu, Common Cold, and more. Ratings are updated using pharmacy stock data, ER wait times, and other local signals — not just official reports.",
+    "otc_title": "Local OTC Stock",
+    "otc_body": "Check whether key medications (Ibuprofen, Antigen Tests, etc.) are available at pharmacies near you. Supply shortages often predict outbreaks before clinical data does.",
+    "self_report_title": "Self Reporting",
+    "self_report_body": "If you or someone near you is sick or you notice empty shelves, you can submit an anonymous report. Your data helps SickSense detect outbreaks earlier for everyone.",
+    "map_title": "Map View",
+    "map_body": "Switch to the Map tab to see a geographic view of outbreak activity across Florida. High-risk areas are highlighted to help you plan ahead.",
+    "privacy_title": "Your Privacy",
+    "privacy_body": "SickSense never shares your personal health data. All self-reports are anonymized. Location data is only used to show you local information — it is never stored or sold."
+  },
+  "in_network_modal": {
+    "title": "In-Network Care",
+    "subtitle": "Providers accepting {{plan}} near you",
+    "accepting": "Accepting Patients",
+    "not_accepting": "Not Accepting"
+  },
+  "map_filter_modal": {
+    "title": "Map Filters",
+    "risk_levels": "RISK LEVELS",
+    "high_risk": "High Risk Zones",
+    "medium_risk": "Medium Risk Zones",
+    "low_risk": "Low Risk Zones",
+    "location_types": "LOCATION TYPES",
+    "pharmacies": "Pharmacies",
+    "hospitals": "Hospitals",
+    "testing_sites": "Testing Sites",
+    "apply": "Apply Filters"
+  },
+  "area_detail_modal": {
+    "risk_index": "RISK INDEX",
+    "risk_suffix": "Risk",
+    "trans_rate": "TRANS. RATE",
+    "active_alerts": "ACTIVE ALERTS",
+    "view_advice": "View Protective Advice"
   },
   "language": {
     "title": "Select your language",
@@ -14,15 +142,13 @@
     "subtitle": "Select up to 4 OTC medicines you use (optional)",
     "search_placeholder": "Search medicines...",
     "items": {
-      "acetaminophen": { "name": "Acetaminophen", "category": "Pain Relief" },
-      "ibuprofen": { "name": "Ibuprofen", "category": "Pain Relief / Anti-inflammatory" },
-      "aspirin": { "name": "Aspirin", "category": "Pain Relief / Blood Thinner" },
-      "antihistamines": { "name": "Antihistamines", "category": "Allergy Relief" },
-      "cough-syrup": { "name": "Cough Syrup", "category": "Cold & Cough Relief" },
-      "decongestant": { "name": "Decongestant", "category": "Nasal / Sinus Relief" },
-      "antacid": { "name": "Antacid", "category": "Digestive Relief" },
-      "vitamins": { "name": "Vitamins / Supplements", "category": "Immune Support" },
-      "throat-lozenges": { "name": "Throat Lozenges", "category": "Sore Throat Relief" }
+      "dayquil": { "name": "DayQuil", "category": "Cold & Flu Relief" },
+      "nyquil": { "name": "NyQuil", "category": "Cold & Flu Relief" },
+      "tylenol-cold-flu": { "name": "Tylenol Cold & Flu", "category": "Cold & Flu Relief" },
+      "mucinex": { "name": "Mucinex", "category": "Chest Congestion" },
+      "robitussin": { "name": "Robitussin", "category": "Cough Relief" },
+      "theraflu": { "name": "Theraflu", "category": "Cold & Flu Relief" },
+      "claritin": { "name": "Claritin", "category": "Allergy Relief" }
     }
   },
   "insurance": {

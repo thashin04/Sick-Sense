@@ -29,19 +29,20 @@ interface Props {
 
 type FilterKey = keyof MapFilters;
 
-const RISK_ROWS: { key: FilterKey; label: string; color: string }[] = [
-  { key: 'highRisk', label: 'High Risk Zones', color: Colors.coral },
-  { key: 'mediumRisk', label: 'Medium Risk Zones', color: Colors.sunlight },
-  { key: 'lowRisk', label: 'Low Risk Zones', color: '#22C55E' },
-];
-
-const LOCATION_ROWS: { key: FilterKey; label: string; color: string }[] = [
-  { key: 'pharmacies', label: 'Pharmacies', color: '#22C55E' },
-  { key: 'hospitals', label: 'Hospitals', color: Colors.indigo },
-  { key: 'testingSites', label: 'Testing Sites', color: Colors.sunlight },
-];
-
 export default function MapFilterModal({ visible, filters, onApply, onClose }: Props) {
+  const { t } = useTranslation();
+
+  const RISK_ROWS: { key: FilterKey; label: string; color: string }[] = [
+    { key: 'highRisk', label: t('map_filter_modal.high_risk'), color: Colors.coral },
+    { key: 'mediumRisk', label: t('map_filter_modal.medium_risk'), color: Colors.sunlight },
+    { key: 'lowRisk', label: t('map_filter_modal.low_risk'), color: '#22C55E' },
+  ];
+
+  const LOCATION_ROWS: { key: FilterKey; label: string; color: string }[] = [
+    { key: 'pharmacies', label: t('map_filter_modal.pharmacies'), color: '#22C55E' },
+    { key: 'hospitals', label: t('map_filter_modal.hospitals'), color: Colors.indigo },
+    { key: 'testingSites', label: t('map_filter_modal.testing_sites'), color: Colors.sunlight },
+  ];
   // Local draft state so changes only commit on Apply
   const [draft, setDraft] = React.useState<MapFilters>(filters);
 
@@ -60,14 +61,14 @@ export default function MapFilterModal({ visible, filters, onApply, onClose }: P
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
           <View style={styles.handle} />
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Map Filters</Text>
+            <Text style={styles.title}>{t('map_filter_modal.title')}</Text>
             <TouchableOpacity
               onPress={onClose}
               hitSlop={12}
@@ -79,7 +80,7 @@ export default function MapFilterModal({ visible, filters, onApply, onClose }: P
 
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Risk Levels */}
-            <Text style={styles.sectionLabel}>RISK LEVELS</Text>
+            <Text style={styles.sectionLabel}>{t('map_filter_modal.risk_levels')}</Text>
             {RISK_ROWS.map((row) => (
               <FilterRow
                 key={row.key}
@@ -93,7 +94,7 @@ export default function MapFilterModal({ visible, filters, onApply, onClose }: P
             <View style={styles.divider} />
 
             {/* Location Types */}
-            <Text style={styles.sectionLabel}>LOCATION TYPES</Text>
+            <Text style={styles.sectionLabel}>{t('map_filter_modal.location_types')}</Text>
             {LOCATION_ROWS.map((row) => (
               <FilterRow
                 key={row.key}
@@ -107,10 +108,10 @@ export default function MapFilterModal({ visible, filters, onApply, onClose }: P
           </ScrollView>
 
           <TouchableOpacity style={styles.applyBtn} onPress={handleApply} activeOpacity={0.85}>
-            <Text style={styles.applyTxt}>Apply Filters</Text>
+            <Text style={styles.applyTxt}>{t('map_filter_modal.apply')}</Text>
           </TouchableOpacity>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -148,6 +149,7 @@ function FilterRow({
 }
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const rowStyles = StyleSheet.create({
   row: {

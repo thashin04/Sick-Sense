@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -261,6 +262,7 @@ const sectionStyles = StyleSheet.create({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function SettingsScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [haptic, setHaptic] = useState(true);
   const [highContrast, setHighContrast] = useState(false);
   const [audioSpeed, setAudioSpeed] = useState(1.2);
@@ -268,12 +270,12 @@ export default function SettingsScreen({ navigation }: Props) {
 
   function confirmDeleteData() {
     Alert.alert(
-      'Delete All Data',
-      'This will permanently delete your account data. This action cannot be undone.',
+      t('settings.delete_confirm_title'),
+      t('settings.delete_confirm_body'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             // TODO: call backend delete endpoint, then navigate to Landing
@@ -288,7 +290,7 @@ export default function SettingsScreen({ navigation }: Props) {
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: Colors.cloudBlue }}>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Settings</Text>
+          <Text style={styles.title}>{t('settings.title')}</Text>
         </View>
       </SafeAreaView>
 
@@ -298,12 +300,12 @@ export default function SettingsScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {/* ACCESSIBILITY */}
-        <Section label="ACCESSIBILITY">
+        <Section label={t('settings.accessibility')}>
           <View style={{ paddingVertical: 14 }}>
             <SettingToggleRow
               icon="phone-portrait-outline"
-              label="Haptic Health Alerts"
-              subtitle="Vibration feedback for important health updates"
+              label={t('settings.haptic_label')}
+              subtitle={t('settings.haptic_sub')}
               value={haptic}
               onToggle={() => setHaptic((v) => !v)}
             />
@@ -312,8 +314,8 @@ export default function SettingsScreen({ navigation }: Props) {
           <View style={{ paddingVertical: 14 }}>
             <SettingToggleRow
               icon="contrast-outline"
-              label="High-Contrast Map"
-              subtitle="Enhanced visibility for map risk zones"
+              label={t('settings.contrast_label')}
+              subtitle={t('settings.contrast_sub')}
               value={highContrast}
               onToggle={() => setHighContrast((v) => !v)}
             />
@@ -322,8 +324,8 @@ export default function SettingsScreen({ navigation }: Props) {
           <View style={{ paddingVertical: 14 }}>
             <SettingActionRow
               icon="volume-medium-outline"
-              label="Audio Speed"
-              subtitle="Adjust playback speed for voice reports"
+              label={t('settings.audio_speed_label')}
+              subtitle={t('settings.audio_speed_sub')}
               actionLabel=""
               onPress={() => {}}
             />
@@ -332,12 +334,12 @@ export default function SettingsScreen({ navigation }: Props) {
         </Section>
 
         {/* NOTIFICATIONS */}
-        <Section label="NOTIFICATIONS">
+        <Section label={t('settings.notifications')}>
           <View style={{ paddingVertical: 14 }}>
             <SettingToggleRow
               icon="notifications-outline"
-              label="Health Alerts"
-              subtitle="Get notified about local health risks"
+              label={t('settings.health_alerts_label')}
+              subtitle={t('settings.health_alerts_sub')}
               value={healthAlerts}
               onToggle={() => setHealthAlerts((v) => !v)}
             />
@@ -345,13 +347,13 @@ export default function SettingsScreen({ navigation }: Props) {
         </Section>
 
         {/* LANGUAGE & REGION */}
-        <Section label="LANGUAGE & REGION">
+        <Section label={t('settings.language_region')}>
           <View style={{ paddingVertical: 14 }}>
             <SettingActionRow
               icon="globe-outline"
-              label="Language"
-              subtitle="English"
-              actionLabel="Change"
+              label={t('settings.language_label')}
+              subtitle={t('settings.language_current')}
+              actionLabel={t('common.change')}
               onPress={() => {
                 // TODO: open language picker
                 navigation.navigate('Language');
@@ -361,13 +363,13 @@ export default function SettingsScreen({ navigation }: Props) {
         </Section>
 
         {/* PRIVACY & SECURITY */}
-        <Section label="PRIVACY & SECURITY">
+        <Section label={t('settings.privacy')}>
           <View style={{ paddingVertical: 14 }}>
             <SettingActionRow
               icon="shield-outline"
-              label="Data Privacy"
-              subtitle="Manage your permissions"
-              actionLabel="View"
+              label={t('settings.data_privacy_label')}
+              subtitle={t('settings.data_privacy_sub')}
+              actionLabel={t('common.view')}
               onPress={() => {
                 // TODO: open data privacy modal
               }}
@@ -379,9 +381,9 @@ export default function SettingsScreen({ navigation }: Props) {
               icon="trash-outline"
               iconBg="#FDECEA"
               iconColor={Colors.coral}
-              label="Delete All Data"
-              subtitle="Purge all account data"
-              actionLabel="Delete"
+              label={t('settings.delete_data_label')}
+              subtitle={t('settings.delete_data_sub')}
+              actionLabel={t('common.delete')}
               actionColor={Colors.coral}
               onPress={confirmDeleteData}
             />
@@ -395,20 +397,20 @@ export default function SettingsScreen({ navigation }: Props) {
       <SafeAreaView edges={['bottom']} style={styles.tabBarSafe}>
         <View style={styles.tabBar}>
           {[
-            { icon: 'home-outline' as const, label: 'Home', active: false },
-            { icon: 'map-outline' as const, label: 'Map', active: false },
-            { icon: 'trending-up-outline' as const, label: 'Advice', active: false },
-            { icon: 'settings' as const, label: 'Settings', active: true },
+            { icon: 'home-outline' as const, key: 'Home', label: t('tabs.home'), active: false },
+            { icon: 'map-outline' as const, key: 'Map', label: t('tabs.map'), active: false },
+            { icon: 'trending-up-outline' as const, key: 'Advice', label: t('tabs.advice'), active: false },
+            { icon: 'settings' as const, key: 'Settings', label: t('tabs.settings'), active: true },
           ].map((tab) => (
             <TouchableOpacity
-              key={tab.label}
+              key={tab.key}
               style={styles.tabItem}
               activeOpacity={0.7}
               onPress={() => {
                 if (!tab.active) {
-                  if (tab.label === 'Home') navigation.navigate('Dashboard');
-                  if (tab.label === 'Map') navigation.navigate('Map');
-                  if (tab.label === 'Advice') navigation.navigate('Advice');
+                  if (tab.key === 'Home') navigation.navigate('Dashboard');
+                  if (tab.key === 'Map') navigation.navigate('Map');
+                  if (tab.key === 'Advice') navigation.navigate('Advice');
                 }
               }}
             >
