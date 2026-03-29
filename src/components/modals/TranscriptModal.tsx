@@ -20,11 +20,13 @@ interface Props {
 
 export default function TranscriptModal({ visible, onClose, transcript, duration }: Props) {
   const { t } = useTranslation();
+  console.log('[TranscriptModal] Rendering. Transcript length:', transcript?.length, 'Visible:', visible);
+
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
-          {/* Handle */}
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.backdrop}>
+        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
+        <View style={styles.sheet}>
           <View style={styles.handle} />
 
           <View style={styles.header}>
@@ -37,11 +39,16 @@ export default function TranscriptModal({ visible, onClose, transcript, duration
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={styles.body}>
-            <Text style={styles.transcriptText}>{transcript}</Text>
+          <ScrollView 
+            showsVerticalScrollIndicator={true} 
+            style={styles.body}
+          >
+            <Text style={styles.transcriptText}>
+              {transcript && transcript.trim() ? transcript.trim() : "The daily health report transcript is currently being generated. Please check back in a few moments."}
+            </Text>
           </ScrollView>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -57,7 +64,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    maxHeight: '75%',
+    height: '60%', // Fixed height instead of maxHeight for debugging layout issues
   },
   handle: {
     width: 40,
@@ -88,10 +95,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   transcriptText: {
-    fontFamily: FontFamily.regular,
     fontSize: FontSize.md,
-    color: '#374151',
+    color: Colors.indigo, // Use a more brand-compliant dark color
     lineHeight: 24,
-    paddingBottom: 32,
+    paddingBottom: 40,
   },
 });

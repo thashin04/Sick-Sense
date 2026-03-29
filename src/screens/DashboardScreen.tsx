@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -57,12 +58,6 @@ const OTC_DISTANCE = '0.4 MI';
 
 const QUICK_TIP =
   'Flu season peaks in Florida from December to February. Consider getting vaccinated and practice frequent handwashing to reduce risk.';
-
-const AUDIO_DURATION = '2:34';
-
-// Placeholder transcript — will be populated by backend TTS response
-const TRANSCRIPT =
-  'Good morning, Thashin. Here is your daily health report for your area.\n\nSeasonal flu activity remains low this week, though Common Cold cases are trending high. Two nearby pharmacies reported reduced stock of children\'s fever reducers yesterday.\n\nOur recommendation: If you or a family member are immunocompromised, consider limiting crowded indoor spaces for the next 48–72 hours. Rapid antigen tests are available at the CVS 0.4 miles from you.\n\nStay hydrated, wash hands frequently, and have a safe day.';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -142,9 +137,18 @@ export default function DashboardScreen({ navigation }: Props) {
   const [riskLevels, setRiskLevels] = useState<RiskLevel[]>(RISK_LEVELS);
   const [otcItems, setOtcItems] = useState<OtcItem[]>(OTC_ITEMS);
 
+  const [transcript, setTranscript] = useState('Fetching daily report...');
+  const [audioDuration, setAudioDuration] = useState('0:00');
+  const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Modern Expo Audio Player (Canary 55)
+  const player = useAudioPlayer('http://localhost:8000/api/city/Tampa/audio-report');
+  const status = useAudioPlayerStatus(player);
+
   useEffect(() => {
     async function loadSummary() {
       try {
+        console.log('[Dashboard] Starting summary and report load...');
         let prefIds: string[] = [];
         try {
           const authStr = await AsyncStorage.getItem('@user_auth');
@@ -177,45 +181,66 @@ export default function DashboardScreen({ navigation }: Props) {
           'robitussin': 'Robitussin',
           'theraflu': 'Theraflu',
           'claritin': 'Claritin',
-          // Backwards compatibility for old generic category preferences stuck in Firebase
           'acetaminophen': 'Tylenol Cold & Flu',
           'ibuprofen': 'Tylenol Cold & Flu', 
           'antihistamines': 'Claritin',
           'cough-syrup': 'Robitussin',
           'decongestant': 'DayQuil',
-          'aspirin': 'DayQuil' // Map missing generic options
+          'aspirin': 'DayQuil'
         };
         const preferredNames = prefIds.map(id => ID_TO_NAME[id]).filter(Boolean);
 
-        const res = await fetch('http://localhost:8000/api/city/Tampa/summary');
-        if (!res.ok) return;
-        const data = await res.json();
-        
-        if (data.local_risk_levels) {
-          const newRisks: RiskLevel[] = [];
-          if (data.local_risk_levels.seasonal_flu) {
-            newRisks.push({ name: 'Seasonal Flu', level: data.local_risk_levels.seasonal_flu, icon: 'nuclear-outline' });
+        // Fetch summary and report in parallel for better performance and reliability
+        const [sumRes, repRes] = await Promise.all([
+          fetch('http://localhost:8000/api/city/Tampa/summary'),
+          fetch('http://localhost:8000/api/city/Tampa/daily-report')
+        ]).catch(err => {
+          console.error('[Dashboard] Parallel fetch failed:', err);
+          return [null, null];
+        });
+
+        if (sumRes && sumRes.ok) {
+          const data = await sumRes.json();
+          console.log('[Dashboard] Summary data received.');
+          if (data.local_risk_levels) {
+            const newRisks: RiskLevel[] = [];
+            if (data.local_risk_levels.seasonal_flu) {
+              newRisks.push({ name: 'Seasonal Flu', level: data.local_risk_levels.seasonal_flu, icon: 'nuclear-outline' });
+            }
+            if (data.local_risk_levels.common_cold) {
+              newRisks.push({ name: 'Common Cold', level: data.local_risk_levels.common_cold, icon: 'thermometer-outline' });
+            }
+            if (newRisks.length > 0) setRiskLevels(newRisks);
           }
-          if (data.local_risk_levels.common_cold) {
-            newRisks.push({ name: 'Common Cold', level: data.local_risk_levels.common_cold, icon: 'thermometer-outline' });
+
+          if (data.otc_stock) {
+            const freshOtc = data.otc_stock
+              .filter((item: any) => preferredNames.length === 0 || preferredNames.includes(item.name))
+              .map((item: any) => ({ name: item.name, status: item.status }));
+            setOtcItems(freshOtc);
           }
-          // Strictly only showing Seasonal Flu and Common Cold as requested
-          if (newRisks.length > 0) {
-            setRiskLevels(newRisks);
-          }
+        } else {
+          console.warn('[Dashboard] Summary fetch failed or not ok');
         }
 
-        if (data.otc_stock && data.otc_stock.length > 0) {
-          const freshOtc = data.otc_stock
-            .filter((item: any) => preferredNames.length === 0 || preferredNames.includes(item.name))
-            .map((item: any) => ({
-              name: item.name,
-              status: item.status,
-            }));
-          setOtcItems(freshOtc);
+        if (repRes && repRes.ok) {
+          const reportData = await repRes.json();
+          console.log('[Dashboard] Daily report received, script length:', reportData.tts_script?.length);
+          if (reportData.tts_script) {
+            setTranscript(reportData.tts_script);
+            const wordCount = reportData.tts_script.split(' ').length;
+            const seconds = Math.ceil(wordCount / (150 / 60));
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            setAudioDuration(`${m}:${s.toString().padStart(2, '0')}`);
+          }
+        } else {
+          console.warn('[Dashboard] Daily report fetch failed or not ok');
+          setTranscript('Health report is currently being updated. Please check back in a few minutes.');
         }
+
       } catch (err) {
-        console.error('Failed to load summary', err);
+        console.error('[Dashboard] Failed to load dashboard data:', err);
       }
     }
     loadSummary();
@@ -263,21 +288,42 @@ export default function DashboardScreen({ navigation }: Props) {
         {/* Daily Health Report */}
         <View style={[styles.card, { marginTop: 20 }]}>
           <Text style={styles.cardTitle}>{t('dashboard.daily_report_title')}</Text>
-          <TouchableOpacity
-            style={styles.playerRow}
-            activeOpacity={0.7}
+          <View style={styles.playerRow}>
+            <TouchableOpacity
+              style={styles.playBtn}
+              activeOpacity={0.7}
             onPress={() => {
-              // TODO: trigger audio playback via backend TTS
+              if (status.playing) {
+                player.pause();
+                setIsPlaying(false);
+              } else {
+                player.play();
+                setIsPlaying(true);
+              }
             }}
           >
-            <View style={styles.playBtn}>
-              <Ionicons name="play" size={18} color={Colors.white} />
-            </View>
-            <View style={styles.waveWrap}>
-              <Text style={styles.duration}>{AUDIO_DURATION}</Text>
-              <Waveform />
-            </View>
+            <Ionicons name={(status.playing) ? "pause" : "play"} size={28} color={Colors.white} />
           </TouchableOpacity>
+
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <View style={styles.audioWaveform}>
+              {[1, 0.7, 0.9, 0.5, 0.8, 0.4, 0.6, 0.9, 0.5, 0.7, 0.4].map((h, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.audioBar,
+                    { height: 16 * h, opacity: status.playing ? 1 : 0.3 }
+                  ]}
+                />
+              ))}
+            </View>
+            {status.isBuffering && (
+              <Text style={{ fontSize: 10, color: '#5582F3', marginTop: 4 }}>Buffering AI Voice...</Text>
+            )}
+          </View>
+          <Text style={styles.audioDuration}>{audioDuration}</Text>
+          </View>
+
           <TouchableOpacity
             style={styles.transcriptLink}
             onPress={() => setTranscriptOpen(true)}
@@ -400,8 +446,8 @@ export default function DashboardScreen({ navigation }: Props) {
       <TranscriptModal
         visible={transcriptOpen}
         onClose={() => setTranscriptOpen(false)}
-        transcript={TRANSCRIPT}
-        duration={AUDIO_DURATION}
+        transcript={transcript}
+        duration={audioDuration}
       />
       <HelpModal visible={helpOpen} onClose={() => setHelpOpen(false)} />
     </View>
@@ -520,6 +566,23 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     color: '#6B7280',
     marginBottom: 14,
+  },
+  audioWaveform: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    height: 16,
+  },
+  audioBar: {
+    width: 3,
+    backgroundColor: Colors.indigo,
+    borderRadius: 2,
+  },
+  audioDuration: {
+    fontFamily: FontFamily.medium,
+    fontSize: FontSize.sm,
+    color: '#374151',
+    marginLeft: 8,
   },
   reportBtn: {
     backgroundColor: Colors.indigo,
