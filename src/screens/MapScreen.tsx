@@ -33,41 +33,26 @@ interface MapMarker {
   coordinates: [number, number]; // [lng, lat]
 }
 
-// ─── Mock data (replace with real API responses) ──────────────────────────────
-
-// Outbreak heatmap data — clustered around Mills 50, Orlando
-const OUTBREAK_GEOJSON: GeoJSON.FeatureCollection = {
+// ─── Initial Data ──────────────────────────────────────────────────────────────
+const EMPTY_GEOJSON: GeoJSON.FeatureCollection = {
   type: 'FeatureCollection',
-  features: [
-    { type: 'Feature', properties: { weight: 1.0 }, geometry: { type: 'Point', coordinates: [-81.3600, 28.5490] } },
-    { type: 'Feature', properties: { weight: 0.95 }, geometry: { type: 'Point', coordinates: [-81.3612, 28.5482] } },
-    { type: 'Feature', properties: { weight: 0.9 }, geometry: { type: 'Point', coordinates: [-81.3590, 28.5475] } },
-    { type: 'Feature', properties: { weight: 0.88 }, geometry: { type: 'Point', coordinates: [-81.3605, 28.5510] } },
-    { type: 'Feature', properties: { weight: 0.82 }, geometry: { type: 'Point', coordinates: [-81.3585, 28.5498] } },
-    { type: 'Feature', properties: { weight: 0.78 }, geometry: { type: 'Point', coordinates: [-81.3618, 28.5505] } },
-    { type: 'Feature', properties: { weight: 0.65 }, geometry: { type: 'Point', coordinates: [-81.3572, 28.5488] } },
-    { type: 'Feature', properties: { weight: 0.55 }, geometry: { type: 'Point', coordinates: [-81.3638, 28.5468] } },
-    { type: 'Feature', properties: { weight: 0.42 }, geometry: { type: 'Point', coordinates: [-81.3595, 28.5528] } },
-    { type: 'Feature', properties: { weight: 0.30 }, geometry: { type: 'Point', coordinates: [-81.3628, 28.5522] } },
-    { type: 'Feature', properties: { weight: 0.25 }, geometry: { type: 'Point', coordinates: [-81.3558, 28.5478] } },
-    { type: 'Feature', properties: { weight: 0.20 }, geometry: { type: 'Point', coordinates: [-81.3650, 28.5495] } },
-  ],
+  features: [],
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const INITIAL_COORDS: [number, number] = [-82.4572, 27.9506]; // Tampa Center
 
 
-const MILLS50_DETAIL: AreaDetail = {
-  name: 'Mills 50',
-  city: 'Orlando',
+const TAMPA_DEFAULT: AreaDetail = {
+  name: 'Tampa',
+  city: 'Tampa',
   state: 'FL',
-  riskScore: 7.2,
+  riskScore: 10.0,
   riskLevel: 'High',
-  transmissionRate: 1.38,
+  transmissionRate: 1.45,
   alerts: [
-    { name: 'Strep Throat', description: 'Rapid spread detected in schools', severity: 'high' },
-    { name: 'Common Cold', description: 'Standard seasonal elevation', severity: 'medium' },
+    { name: 'Influenza A', description: 'Surge detected in Hillsborough County', severity: 'high' },
+    { name: 'Common Cold', description: 'Seasonal elevation', severity: 'medium' },
   ],
 };
 
@@ -108,27 +93,66 @@ export default function MapScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
-  const [selectedArea] = useState<AreaDetail>(MILLS50_DETAIL);
+  const [selectedArea, setSelectedArea] = useState<AreaDetail>(TAMPA_DEFAULT);
   const [areaDetailOpen, setAreaDetailOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
+  const [heatmapData, setHeatmapData] = useState<GeoJSON.FeatureCollection>(EMPTY_GEOJSON);
 
   const visibleMarkers = markers.filter((m) => markerVisible(m.type, filters));
 
   React.useEffect(() => {
-    async function fetchLocations() {
+    async function fetchMapData() {
       try {
-        const res = await fetch('http://localhost:8000/api/locations');
-        if (res.ok) {
-          const data = await res.json();
-          setMarkers(data);
+        const [locRes, heatRes] = await Promise.all([
+          fetch('http://localhost:8000/api/locations'),
+          fetch('http://localhost:8000/api/map/heatmap')
+        ]);
+        
+        if (locRes.ok) {
+          const locData = await locRes.json();
+          setMarkers(locData);
+        }
+        
+        if (heatRes.ok) {
+          const heatData = await heatRes.json();
+          setHeatmapData(heatData);
+          
+          // Set initial detailed area from the first city found (usually Tampa)
+          if (heatData.features && heatData.features.length > 0) {
+            const firstFeature = heatData.features[0].properties;
+            setSelectedArea({
+              name: firstFeature.city,
+              city: firstFeature.city,
+              state: firstFeature.state || 'FL',
+              riskScore: firstFeature.risk_score || 0,
+              riskLevel: firstFeature.risk_level || 'Low',
+              transmissionRate: 1.0 + (firstFeature.weight * 0.5),
+              alerts: firstFeature.alerts || [],
+            });
+          }
         }
       } catch (err) {
-        console.error('[Map] Failed to fetch locations:', err);
+        console.error('[Map] Failed to fetch data:', err);
       }
     }
-    fetchLocations();
+    fetchMapData();
   }, []);
+
+  const handleHeatmapPress = (event: any) => {
+    if (event.features && event.features.length > 0) {
+      const featureData = event.features[0].properties;
+      setSelectedArea({
+        name: featureData.city,
+        city: featureData.city,
+        state: featureData.state || 'FL',
+        riskScore: featureData.risk_score || 0,
+        riskLevel: featureData.risk_level || 'Low',
+        transmissionRate: 1.0 + (featureData.weight * 0.5),
+        alerts: featureData.alerts || [],
+      });
+    }
+  };
 
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>
@@ -172,33 +196,91 @@ export default function MapScreen({ navigation }: Props) {
             animationMode="none"
           />
 
-          {/* Heatmap outbreak layer */}
-          <MapboxGL.ShapeSource id="outbreak-source" shape={OUTBREAK_GEOJSON}>
-            <MapboxGL.HeatmapLayer
-              id="outbreak-heat"
+          {/* Heat outbreak layer - "Total Saturation" Refined for Transparency */}
+          <MapboxGL.ShapeSource 
+            id="outbreak-source" 
+            shape={heatmapData}
+            onPress={handleHeatmapPress}
+          >
+            {/* 1. Atmospheric Glow - Huge regional cloud */}
+            <MapboxGL.CircleLayer
+              id="outbreak-heat-glow"
               sourceID="outbreak-source"
               style={{
-                heatmapWeight: [
+                circleRadius: [
+                  'interpolate',
+                  ['exponential', 1.75],
+                  ['zoom'],
+                  8, 150, 
+                  11, 450, 
+                  14, 1200,
+                ],
+                circleColor: [
                   'interpolate',
                   ['linear'],
                   ['get', 'weight'],
-                  0, 0,
-                  1, 1,
+                  0,    'rgba(34, 197, 94, 0)',
+                  0.45, 'rgba(34, 197, 94, 0.4)', 
+                  0.65, 'rgba(34, 197, 94, 0.6)', 
+                  0.82, 'rgba(234, 179, 8, 0.7)', 
+                  0.95, 'rgba(239, 68, 68, 0.8)', 
                 ],
-                heatmapIntensity: 1.8,
-                heatmapColor: [
+                circleBlur: 0.9, 
+                circleOpacity: 0.55,
+              }}
+            />
+            
+            {/* 2. Solid City Mass - Heavy "blob" of heat */}
+            <MapboxGL.CircleLayer
+              id="outbreak-heat-mass"
+              sourceID="outbreak-source"
+              style={{
+                circleRadius: [
+                  'interpolate',
+                  ['exponential', 1.75],
+                  ['zoom'],
+                  8, 60, 
+                  11, 240, 
+                  14, 700,
+                ],
+                circleColor: [
                   'interpolate',
                   ['linear'],
-                  ['heatmap-density'],
-                  0,   'rgba(33, 102, 172, 0)',
-                  0.1, 'rgba(103, 169, 207, 0.4)',
-                  0.3, 'rgba(59, 200, 120, 0.7)',
-                  0.5, 'rgba(230, 214, 50, 0.85)',
-                  0.7, 'rgba(243, 130, 50, 0.9)',
-                  1.0, 'rgba(200, 30, 30, 1)',
+                  ['get', 'weight'],
+                  0,    'rgba(34, 197, 94, 0)',
+                  0.5,  'rgba(34, 197, 94, 0.75)', 
+                  0.75, 'rgba(234, 179, 8, 0.85)', 
+                  0.9,  'rgba(239, 68, 68, 0.95)',  
                 ],
-                heatmapRadius: 55,
-                heatmapOpacity: 0.85,
+                circleBlur: 0.45, 
+                circleOpacity: 0.65,
+              }}
+            />
+            
+            {/* 3. Nuclear Epicenter - Core now allows labels to show through */}
+            <MapboxGL.CircleLayer
+              id="outbreak-heat-core"
+              sourceID="outbreak-source"
+              style={{
+                circleRadius: [
+                  'interpolate',
+                  ['exponential', 1.75],
+                  ['zoom'],
+                  8, 25, 
+                  11, 100, 
+                  14, 350,
+                ],
+                circleColor: [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'weight'],
+                  0,    'rgba(34, 197, 94, 0)',
+                  0.5,  'rgba(34, 197, 94, 0.85)', 
+                  0.75, 'rgba(234, 179, 8, 0.9)', 
+                  0.9,  'rgba(239, 68, 68, 0.95)', 
+                ],
+                circleBlur: 0.35, 
+                circleOpacity: 0.65,
               }}
             />
           </MapboxGL.ShapeSource>
