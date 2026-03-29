@@ -118,3 +118,19 @@ def get_city_summary(city: str) -> dict | None:
         print(f"[Firebase] Error retrieving city summary: {e}")
         return None
 
+def get_all_city_summaries() -> dict:
+    """
+    Retrieves the latest structured health summary for all cities.
+    Returns a dictionary mapping city name to its summary.
+    """
+    db = init_firebase()
+    if not db:
+        return {}
+
+    try:
+        docs = db.collection("city_health_summaries").stream()
+        return {doc.id: doc.to_dict() for doc in docs}
+    except Exception as e:
+        print(f"[Firebase] Error retrieving all city summaries: {e}")
+        return {}
+

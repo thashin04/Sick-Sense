@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,24 +32,7 @@ interface MapMarker {
 
 // ─── Mock data (replace with real API responses) ──────────────────────────────
 
-// Outbreak heatmap data — clustered around Mills 50, Orlando
-const OUTBREAK_GEOJSON: GeoJSON.FeatureCollection = {
-  type: 'FeatureCollection',
-  features: [
-    { type: 'Feature', properties: { weight: 1.0 }, geometry: { type: 'Point', coordinates: [-81.3600, 28.5490] } },
-    { type: 'Feature', properties: { weight: 0.95 }, geometry: { type: 'Point', coordinates: [-81.3612, 28.5482] } },
-    { type: 'Feature', properties: { weight: 0.9 }, geometry: { type: 'Point', coordinates: [-81.3590, 28.5475] } },
-    { type: 'Feature', properties: { weight: 0.88 }, geometry: { type: 'Point', coordinates: [-81.3605, 28.5510] } },
-    { type: 'Feature', properties: { weight: 0.82 }, geometry: { type: 'Point', coordinates: [-81.3585, 28.5498] } },
-    { type: 'Feature', properties: { weight: 0.78 }, geometry: { type: 'Point', coordinates: [-81.3618, 28.5505] } },
-    { type: 'Feature', properties: { weight: 0.65 }, geometry: { type: 'Point', coordinates: [-81.3572, 28.5488] } },
-    { type: 'Feature', properties: { weight: 0.55 }, geometry: { type: 'Point', coordinates: [-81.3638, 28.5468] } },
-    { type: 'Feature', properties: { weight: 0.42 }, geometry: { type: 'Point', coordinates: [-81.3595, 28.5528] } },
-    { type: 'Feature', properties: { weight: 0.30 }, geometry: { type: 'Point', coordinates: [-81.3628, 28.5522] } },
-    { type: 'Feature', properties: { weight: 0.25 }, geometry: { type: 'Point', coordinates: [-81.3558, 28.5478] } },
-    { type: 'Feature', properties: { weight: 0.20 }, geometry: { type: 'Point', coordinates: [-81.3650, 28.5495] } },
-  ],
-};
+// Heatmap data state fetched from backend
 
 const ALL_MARKERS: MapMarker[] = [
   { id: 'cvs-mills', name: 'CVS Pharmacy', type: 'pharmacy', coordinates: [-81.3680, 28.5600] },
@@ -109,6 +92,22 @@ export default function MapScreen({ navigation }: Props) {
   const [selectedArea] = useState<AreaDetail>(MILLS50_DETAIL);
   const [areaDetailOpen, setAreaDetailOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [heatmapData, setHeatmapData] = useState<GeoJSON.FeatureCollection | null>(null);
+
+  useEffect(() => {
+    async function fetchHeatmap() {
+      try {
+        const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+        const res = await fetch(`${apiUrl}/api/heatmap`);
+        if (!res.ok) throw new Error('Failed to fetch heatmap');
+        const data = await res.json();
+        setHeatmapData(data);
+      } catch (err) {
+        console.error('Error fetching heatmap data:', err);
+      }
+    }
+    fetchHeatmap();
+  }, []);
 
   const visibleMarkers = ALL_MARKERS.filter((m) => markerVisible(m.type, filters));
 
@@ -155,35 +154,37 @@ export default function MapScreen({ navigation }: Props) {
           />
 
           {/* Heatmap outbreak layer */}
-          <MapboxGL.ShapeSource id="outbreak-source" shape={OUTBREAK_GEOJSON}>
-            <MapboxGL.HeatmapLayer
-              id="outbreak-heat"
-              sourceID="outbreak-source"
-              style={{
-                heatmapWeight: [
-                  'interpolate',
-                  ['linear'],
-                  ['get', 'weight'],
-                  0, 0,
-                  1, 1,
-                ],
-                heatmapIntensity: 1.8,
-                heatmapColor: [
-                  'interpolate',
-                  ['linear'],
-                  ['heatmap-density'],
-                  0,   'rgba(33, 102, 172, 0)',
-                  0.1, 'rgba(103, 169, 207, 0.4)',
-                  0.3, 'rgba(59, 200, 120, 0.7)',
-                  0.5, 'rgba(230, 214, 50, 0.85)',
-                  0.7, 'rgba(243, 130, 50, 0.9)',
-                  1.0, 'rgba(200, 30, 30, 1)',
-                ],
-                heatmapRadius: 55,
-                heatmapOpacity: 0.85,
-              }}
-            />
-          </MapboxGL.ShapeSource>
+          {heatmapData && (
+            <MapboxGL.ShapeSource id="outbreak-source" shape={heatmapData}>
+              <MapboxGL.HeatmapLayer
+                id="outbreak-heat"
+                sourceID="outbreak-source"
+                style={{
+                  heatmapWeight: [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'weight'],
+                    0, 0,
+                    1, 1,
+                  ],
+                  heatmapIntensity: 1.8,
+                  heatmapColor: [
+                    'interpolate',
+                    ['linear'],
+                    ['heatmap-density'],
+                    0,   'rgba(33, 102, 172, 0)',
+                    0.1, 'rgba(103, 169, 207, 0.4)',
+                    0.3, 'rgba(59, 200, 120, 0.7)',
+                    0.5, 'rgba(230, 214, 50, 0.85)',
+                    0.7, 'rgba(243, 130, 50, 0.9)',
+                    1.0, 'rgba(200, 30, 30, 1)',
+                  ],
+                  heatmapRadius: 55,
+                  heatmapOpacity: 0.85,
+                }}
+              />
+            </MapboxGL.ShapeSource>
+          )}
 
           {/* Location markers */}
           {visibleMarkers.map((marker) => (

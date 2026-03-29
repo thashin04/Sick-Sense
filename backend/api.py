@@ -10,7 +10,8 @@ from google.genai import types
 
 from backend.config.cities import FLORIDA_CITIES, get_city
 from backend.orchestrator import create_orchestrator
-from backend.db.firebase import save_self_report, get_city_summary
+from backend.db.firebase import save_self_report, get_city_summary, get_all_city_summaries
+import random
 
 app = FastAPI(
     title="SickSense API",
@@ -137,6 +138,55 @@ async def scan_city(request: ScanRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Scan failed: {str(e)}")
+
+@app.get("/api/heatmap")
+async def get_heatmap_data():
+    """Generates a GeoJSON FeatureCollection based on active illnesses across cities."""
+    # Mapping risk strings to numerical scores
+    risk_map = {
+        "Critical": 4.0,
+        "Very High": 3.0,
+        "High": 2.5,
+        "Medium": 1.5,
+        "Low": 0.5,
+        "None": 0.0,
+    }
+    
+    summaries = get_all_city_summaries()
+    features = []
+    
+    for city_key, city_cfg in FLORIDA_CITIES.items():
+        summary = summaries.get(city_cfg.name, {})
+        # Calculate a cumulative risk score for this city
+        total_risk = 0.0
+        local_risks = summary.get("local_risk_levels", {})
+        for risk_val in local_risks.values():
+            if isinstance(risk_val, str):
+                total_risk += risk_map.get(risk_val, 0)
+                
+        # If there's some risk, generate points around the city center
+        # To make it look like a heatmap, we'll spawn multiple points based on severity
+        if total_risk > 0:
+            num_points = int(total_risk * 3) + 1  # Base scale
+            # Max random offset in degrees
+            spread = 0.03 + (total_risk * 0.005) 
+            
+            for _ in range(num_points):
+                # Apply small jitter around the city center
+                lng = city_cfg.lng + random.uniform(-spread, spread)
+                lat = city_cfg.lat + random.uniform(-spread, spread)
+                
+                point = {
+                    "type": "Feature",
+                    "properties": { "weight": min(1.0, total_risk / 5.0) },
+                    "geometry": { "type": "Point", "coordinates": [lng, lat] }
+                }
+                features.append(point)
+                
+    return {
+        "type": "FeatureCollection",
+        "features": features
+    }
 
 
 @app.get("/api/city/{city}/summary")
