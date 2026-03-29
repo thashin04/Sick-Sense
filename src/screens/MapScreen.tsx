@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -28,6 +28,7 @@ interface MapMarker {
   id: string;
   name: string;
   type: MarkerType;
+  city: string;
   coordinates: [number, number]; // [lng, lat]
 }
 
@@ -52,12 +53,9 @@ const OUTBREAK_GEOJSON: GeoJSON.FeatureCollection = {
   ],
 };
 
-const ALL_MARKERS: MapMarker[] = [
-  { id: 'cvs-mills', name: 'CVS Pharmacy', type: 'pharmacy', coordinates: [-81.3680, 28.5600] },
-  { id: 'adventhealth', name: 'AdventHealth', type: 'hospital', coordinates: [-81.3462, 28.5238] },
-  { id: 'walgreens', name: 'Walgreens', type: 'pharmacy', coordinates: [-81.3540, 28.5540] },
-  { id: 'testing-site-1', name: 'Testing Site', type: 'testing-site', coordinates: [-81.3720, 28.5420] },
-];
+// ─── Constants ────────────────────────────────────────────────────────────────
+const INITIAL_COORDS: [number, number] = [-82.4572, 27.9506]; // Tampa Center
+
 
 const MILLS50_DETAIL: AreaDetail = {
   name: 'Mills 50',
@@ -111,8 +109,24 @@ export default function MapScreen({ navigation }: Props) {
   const [selectedArea] = useState<AreaDetail>(MILLS50_DETAIL);
   const [areaDetailOpen, setAreaDetailOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [markers, setMarkers] = useState<MapMarker[]>([]);
 
-  const visibleMarkers = ALL_MARKERS.filter((m) => markerVisible(m.type, filters));
+  const visibleMarkers = markers.filter((m) => markerVisible(m.type, filters));
+
+  React.useEffect(() => {
+    async function fetchLocations() {
+      try {
+        const res = await fetch('http://localhost:8000/api/locations');
+        if (res.ok) {
+          const data = await res.json();
+          setMarkers(data);
+        }
+      } catch (err) {
+        console.error('[Map] Failed to fetch locations:', err);
+      }
+    }
+    fetchLocations();
+  }, []);
 
   return (
     <View style={styles.root}>
@@ -151,8 +165,8 @@ export default function MapScreen({ navigation }: Props) {
           attributionEnabled={false}
         >
           <MapboxGL.Camera
-            centerCoordinate={[-81.3600, 28.5490]}
-            zoomLevel={13}
+            centerCoordinate={INITIAL_COORDS}
+            zoomLevel={11}
             animationMode="none"
           />
 

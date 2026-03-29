@@ -65,6 +65,15 @@ class AuthLoginRequest(BaseModel):
 class AuthOAuthRequest(BaseModel):
     id_token: str
 
+
+class LocationMarker(BaseModel):
+    id: str
+    name: str
+    type: str # pharmacy, hospital, testing-site
+    city: str
+    coordinates: list[float]
+
+
 class UserPreferencesRequest(BaseModel):
     uid: str
     language: str | None = None
@@ -159,6 +168,21 @@ async def scan_city(request: ScanRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Scan failed: {str(e)}")
+
+
+@app.get("/api/locations", response_model=list[LocationMarker])
+async def get_map_locations(city: str | None = None):
+    """Retrieve all health facility locations for the map."""
+    from backend.config.locations import HEALTH_LOCATIONS
+    
+    if city:
+        try:
+            city_cfg = get_city(city)
+            return [m for m in HEALTH_LOCATIONS if m["city"].lower() == city_cfg.name.lower()]
+        except ValueError:
+            return []
+            
+    return HEALTH_LOCATIONS
 
 
 @app.get("/api/city/{city}/summary")
