@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import IntakeLayout from '../components/IntakeLayout';
@@ -11,12 +11,12 @@ type Props = {
 };
 
 const LANGUAGES = [
-  { id: 'en', flag: '🇺🇸', name: 'English', native: 'English' },
-  { id: 'es', flag: '🇪🇸', name: 'Español', native: 'Spanish' },
-  { id: 'ht', flag: '🇭🇹', name: 'Kreyòl ayisyen', native: 'Haitian Creole' },
-  { id: 'pt', flag: '🇧🇷', name: 'Português', native: 'Portuguese' },
-  { id: 'fr', flag: '🇫🇷', name: 'Français', native: 'French' },
-  { id: 'zh', flag: '🇨🇳', name: '中文', native: 'Chinese' },
+  { id: 'en', code: 'us', name: 'English', native: 'English' },
+  { id: 'es', code: 'es', name: 'Español', native: 'Spanish' },
+  { id: 'ht', code: 'ht', name: 'Kreyòl ayisyen', native: 'Haitian Creole' },
+  { id: 'pt', code: 'br', name: 'Português', native: 'Portuguese' },
+  { id: 'fr', code: 'fr', name: 'Français', native: 'French' },
+  { id: 'zh', code: 'cn', name: '中文', native: 'Chinese' },
 ];
 
 export default function LanguageScreen({ navigation }: Props) {
@@ -48,16 +48,18 @@ export default function LanguageScreen({ navigation }: Props) {
             onPress={() => setSelected(lang.id)}
             activeOpacity={0.8}
           >
-            <Text style={styles.flag}>{lang.flag}</Text>
+            <Image 
+              source={{ uri: `https://flagcdn.com/w40/${lang.code}.png` }} 
+              style={styles.flag} 
+              resizeMode="cover"
+            />
             <View style={styles.labelWrap}>
               <Text style={styles.langName}>{lang.name}</Text>
               <Text style={styles.langNative}>{lang.native}</Text>
             </View>
-            {isSelected && (
-              <View style={styles.check}>
-                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-              </View>
-            )}
+            <View style={[styles.check, !isSelected && { backgroundColor: 'transparent' }]}>
+              {isSelected && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -71,17 +73,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: Colors.lightMidBlue,
     padding: 14,
     marginBottom: 10,
+    minHeight: 72,
   },
   cardSelected: {
     borderColor: Colors.darkBlue,
-    borderWidth: 2,
   },
   flag: {
-    fontSize: 26,
+    width: 32,
+    height: 24,
+    borderRadius: 3,
     marginRight: 14,
   },
   labelWrap: {

@@ -40,7 +40,7 @@ export default function InsuranceScreen({ navigation }: Props) {
       searchValue={search}
       onSearch={setSearch}
       onBack={() => navigation.goBack()}
-      buttonLabel="Skip for now"
+      buttonLabel={selected !== null ? 'Continue' : 'Skip for now'}
       onButton={() => navigation.navigate('Tutorial')}
     >
       {filtered.map((provider) => {
@@ -53,11 +53,9 @@ export default function InsuranceScreen({ navigation }: Props) {
             activeOpacity={0.8}
           >
             <Text style={styles.providerName}>{provider.name}</Text>
-            {isSelected && (
-              <View style={styles.check}>
-                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-              </View>
-            )}
+            <View style={[styles.check, !isSelected && { backgroundColor: 'transparent' }]}>
+              {isSelected && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -71,15 +69,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: Colors.lightMidBlue,
     paddingHorizontal: 18,
     paddingVertical: 18,
     marginBottom: 10,
+    minHeight: 64,
   },
   cardSelected: {
     borderColor: Colors.darkBlue,
-    borderWidth: 2,
   },
   providerName: {
     flex: 1,

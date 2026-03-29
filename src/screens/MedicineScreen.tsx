@@ -50,7 +50,7 @@ export default function MedicineScreen({ navigation }: Props) {
       searchValue={search}
       onSearch={setSearch}
       onBack={() => navigation.goBack()}
-      buttonLabel="Skip for now"
+      buttonLabel={selected.length > 0 ? 'Continue' : 'Skip for now'}
       onButton={() => navigation.navigate('InsuranceProvider')}
     >
       {filtered.map((med) => {
@@ -72,11 +72,9 @@ export default function MedicineScreen({ navigation }: Props) {
               <Text style={styles.medName}>{med.name}</Text>
               <Text style={styles.medCategory}>{med.category}</Text>
             </View>
-            {isSelected && (
-              <View style={styles.check}>
-                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-              </View>
-            )}
+            <View style={[styles.check, !isSelected && { backgroundColor: 'transparent' }]}>
+              {isSelected && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -90,14 +88,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: Colors.lightMidBlue,
     padding: 16,
     marginBottom: 10,
+    minHeight: 82,
   },
   cardSelected: {
     borderColor: Colors.darkBlue,
-    borderWidth: 2,
   },
   cardDisabled: {
     opacity: 0.45,
