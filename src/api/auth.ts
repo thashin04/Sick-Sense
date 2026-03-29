@@ -69,3 +69,20 @@ export const updateUserPreferences = async (
     throw new Error(error.message || 'Network request failed');
   }
 };
+export const oauthLogin = async (idToken: string): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/oauth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_token: idToken }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail || 'Social Login failed');
+    }
+    return data;
+  } catch (error: any) {
+    throw new Error(error.message || 'Network request failed');
+  }
+};

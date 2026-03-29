@@ -22,6 +22,9 @@ import GoogleIcon from '../components/GoogleIcon';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import { useAppleAuth } from '../hooks/useAppleAuth';
+import { oauthLogin } from '../api/auth';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'SignUp'>;
@@ -36,6 +39,26 @@ export default function SignUpScreen({ navigation }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { login: googleLogin, isLoading: googleLoading } = useGoogleAuth();
+  const { login: appleLogin, isLoading: appleLoading } = useAppleAuth();
+  const [socialLoading, setSocialLoading] = useState(false);
+
+  const isAnyLoading = isLoading || googleLoading || appleLoading || socialLoading;
+
+  const handleSocialSignup = async (socialFn: () => Promise<any>, type: 'Google' | 'Apple') => {
+    setSocialLoading(true);
+    try {
+      const response = await socialFn();
+      if (response && response.user) {
+        await AsyncStorage.setItem('@user_auth', JSON.stringify(response.user));
+        navigation.navigate('Language', { fromOnboarding: true });
+      }
+    } catch (error: any) {
+      Alert.alert(`${type} Sign Up Failed`, error.message);
+    } finally {
+      setSocialLoading(false);
+    }
+  };
 
   const handleSignup = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -82,14 +105,32 @@ export default function SignUpScreen({ navigation }: Props) {
             <Text style={[styles.subtitle, { color: theme.muted }]}>Join SickSense!</Text>
 
             <View style={[styles.card, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
-              <TouchableOpacity style={[styles.socialBtn, { borderColor: theme.border }]} activeOpacity={0.8}>
-                <GoogleIcon size={20} />
-                <Text style={[styles.socialTxt, { color: theme.heading }]}>Sign up with Google</Text>
+              <TouchableOpacity
+                style={[styles.socialBtn, { borderColor: theme.border }]}
+                activeOpacity={0.8}
+                onPress={() => handleSocialSignup(googleLogin, 'Google')}
+                disabled={isAnyLoading}
+              >
+                {googleLoading || socialLoading ? <ActivityIndicator size="small" color={theme.heading} /> : (
+                  <>
+                    <GoogleIcon size={20} />
+                    <Text style={[styles.socialTxt, { color: theme.heading }]}>Sign up with Google</Text>
+                  </>
+                )}
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.socialBtn, { borderColor: theme.border }]} activeOpacity={0.8}>
-                <FontAwesome name="apple" size={22} color={theme.heading} />
-                <Text style={[styles.socialTxt, { color: theme.heading }]}>Sign up with Apple</Text>
+              <TouchableOpacity
+                style={[styles.socialBtn, { borderColor: theme.border }]}
+                activeOpacity={0.8}
+                onPress={() => handleSocialSignup(appleLogin, 'Apple')}
+                disabled={isAnyLoading}
+              >
+                {appleLoading || (socialLoading && !googleLoading) ? <ActivityIndicator size="small" color={theme.heading} /> : (
+                  <>
+                    <FontAwesome name="apple" size={22} color={theme.heading} />
+                    <Text style={[styles.socialTxt, { color: theme.heading }]}>Sign up with Apple</Text>
+                  </>
+                )}
               </TouchableOpacity>
 
               <View style={styles.divider}>
@@ -153,7 +194,7 @@ export default function SignUpScreen({ navigation }: Props) {
                 style={[styles.primaryBtn, { backgroundColor: theme.primary, shadowColor: theme.primary }]}
                 activeOpacity={0.85}
                 onPress={handleSignup}
-                disabled={isLoading}
+                disabled={isAnyLoading}
               >
                 {isLoading ? (
                   <ActivityIndicator color={theme.primaryText} />

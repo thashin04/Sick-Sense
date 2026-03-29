@@ -22,6 +22,9 @@ import GoogleIcon from '../components/GoogleIcon';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import { useAppleAuth } from '../hooks/useAppleAuth';
+import { oauthLogin } from '../api/auth';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -33,6 +36,26 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { login: googleLogin, isLoading: googleLoading } = useGoogleAuth();
+  const { login: appleLogin, isLoading: appleLoading } = useAppleAuth();
+  const [socialLoading, setSocialLoading] = useState(false);
+
+  const isAnyLoading = isLoading || googleLoading || appleLoading || socialLoading;
+
+  const handleSocialLogin = async (socialFn: () => Promise<any>, type: 'Google' | 'Apple') => {
+    setSocialLoading(true);
+    try {
+      const response = await socialFn();
+      if (response && response.user) {
+        await AsyncStorage.setItem('@user_auth', JSON.stringify(response.user));
+        navigation.navigate('Dashboard');
+      }
+    } catch (error: any) {
+      Alert.alert(`${type} Login Failed`, error.message);
+    } finally {
+      setSocialLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -74,14 +97,32 @@ export default function LoginScreen({ navigation }: Props) {
             <Text style={[styles.subtitle, { color: theme.muted }]}>Welcome to SickSense!</Text>
 
             <View style={[styles.card, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
-              <TouchableOpacity style={[styles.socialBtn, { borderColor: theme.border }]} activeOpacity={0.8}>
-                <GoogleIcon size={20} />
-                <Text style={[styles.socialTxt, { color: theme.heading }]}>Login with Google</Text>
+              <TouchableOpacity
+                style={[styles.socialBtn, { borderColor: theme.border }]}
+                activeOpacity={0.8}
+                onPress={() => handleSocialLogin(googleLogin, 'Google')}
+                disabled={isAnyLoading}
+              >
+                {googleLoading || socialLoading ? <ActivityIndicator size="small" color={theme.heading} /> : (
+                  <>
+                    <GoogleIcon size={20} />
+                    <Text style={[styles.socialTxt, { color: theme.heading }]}>Login with Google</Text>
+                  </>
+                )}
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.socialBtn, { borderColor: theme.border }]} activeOpacity={0.8}>
-                <FontAwesome name="apple" size={22} color={theme.heading} />
-                <Text style={[styles.socialTxt, { color: theme.heading }]}>Login with Apple</Text>
+              <TouchableOpacity
+                style={[styles.socialBtn, { borderColor: theme.border }]}
+                activeOpacity={0.8}
+                onPress={() => handleSocialLogin(appleLogin, 'Apple')}
+                disabled={isAnyLoading}
+              >
+                {appleLoading || (socialLoading && !googleLoading) ? <ActivityIndicator size="small" color={theme.heading} /> : (
+                  <>
+                    <FontAwesome name="apple" size={22} color={theme.heading} />
+                    <Text style={[styles.socialTxt, { color: theme.heading }]}>Login with Apple</Text>
+                  </>
+                )}
               </TouchableOpacity>
 
               <View style={styles.divider}>
@@ -124,7 +165,7 @@ export default function LoginScreen({ navigation }: Props) {
                 style={[styles.primaryBtn, { backgroundColor: theme.primary, shadowColor: theme.primary }]}
                 activeOpacity={0.85}
                 onPress={handleLogin}
-                disabled={isLoading}
+                disabled={isAnyLoading}
               >
                 {isLoading ? (
                   <ActivityIndicator color={theme.primaryText} />
