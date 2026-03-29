@@ -16,7 +16,7 @@ import { loginUser } from '../api/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import CloudHeader from '../components/CloudHeader';
 import GoogleIcon from '../components/GoogleIcon';
 import { Colors, FontFamily, FontSize } from '../theme';
@@ -31,6 +31,7 @@ export default function LoginScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -101,14 +102,19 @@ export default function LoginScreen({ navigation }: Props) {
               />
 
               <Text style={[styles.label, { color: theme.labelText }]}>Password</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.inputText }]}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                placeholderTextColor={theme.placeholderColor}
-              />
+              <View style={styles.inputWrap}>
+                <TextInput
+                  style={[styles.input, styles.inputWithIcon, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.inputText }]}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  placeholderTextColor={theme.placeholderColor}
+                />
+                <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(v => !v)} hitSlop={8}>
+                  <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={theme.placeholderColor} />
+                </TouchableOpacity>
+              </View>
 
               <TouchableOpacity style={styles.forgotWrap}>
                 <Text style={styles.forgotTxt}>Forgot Password?</Text>
@@ -217,6 +223,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFBFF',
     marginBottom: 16,
   },
+  inputWrap: { marginBottom: 16 },
+  inputWithIcon: { marginBottom: 0, paddingRight: 48 },
+  eyeBtn: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
   forgotWrap: { alignSelf: 'flex-end', marginBottom: 24, marginTop: -8 },
   forgotTxt: {
     fontFamily: FontFamily.semiBold,

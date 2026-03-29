@@ -32,7 +32,8 @@ type Props = {
 
 export default function LandingScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
-  const { isDark } = useAppTheme();
+  const theme = useAppTheme();
+  const { isDark } = theme;
 
   const graphic = isDark ? DARK_GRAPHIC : LIGHT_GRAPHIC;
   const hill    = isDark ? DARK_HILL    : LIGHT_HILL;
@@ -41,8 +42,8 @@ export default function LandingScreen({ navigation }: Props) {
   const hillH    = hill ? width * aspectRatio(hill, 0.55) : 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.indigo }}>
-      <StatusBar style="light" />
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <StatusBar style={theme.statusBar} />
 
       <Image
         source={graphic}
@@ -61,24 +62,24 @@ export default function LandingScreen({ navigation }: Props) {
       <View style={styles.content}>
         <View style={styles.spacer} />
         <View style={styles.textBlock}>
-          <Text style={styles.title}>Your Sixth Sense for{'\n'}Local Health.</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: theme.heading }]}>Your Sixth Sense for{'\n'}Local Health.</Text>
+          <Text style={[styles.subtitle, { color: isDark ? '#A3C7FF' : Colors.indigo }]}>
             Real-time health intelligence to protect your home and your community.
           </Text>
           <View style={styles.buttons}>
             <TouchableOpacity
-              style={styles.loginBtn}
+              style={[styles.loginBtn, { backgroundColor: isDark ? '#FFFFFF' : Colors.indigo }]}
               activeOpacity={0.85}
               onPress={() => navigation.navigate('Login')}
             >
-              <Text style={styles.loginTxt}>Login</Text>
+              <Text style={[styles.loginTxt, { color: isDark ? Colors.indigo : '#FFFFFF' }]}>Login</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.signupBtn}
+              style={[styles.signupBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(30,28,97,0.12)' }]}
               activeOpacity={0.85}
               onPress={() => navigation.navigate('SignUp')}
             >
-              <Text style={styles.signupTxt}>Sign up</Text>
+              <Text style={[styles.signupTxt, { color: isDark ? '#FFFFFF' : Colors.indigo }]}>Sign up</Text>
             </TouchableOpacity>
           </View>
         </View>

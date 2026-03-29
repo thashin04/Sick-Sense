@@ -307,18 +307,18 @@ export default function DashboardScreen({ navigation }: Props) {
               {/* Top row */}
               <View style={styles.headerTopRow}>
                 <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
-                  <Text style={styles.locationTxt}>{t('common.current_location')}</Text>
-                  <Ionicons name="chevron-down" size={14} color={Colors.indigo} />
+                  <Text style={[styles.locationTxt, { color: theme.heading }]}>{t('common.current_location')}</Text>
+                  <Ionicons name="chevron-down" size={14} color={theme.heading} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setHelpOpen(true)} hitSlop={12}>
-                  <Ionicons name="information-circle-outline" size={26} color={Colors.indigo} />
+                  <Ionicons name="information-circle-outline" size={26} color={theme.heading} />
                 </TouchableOpacity>
               </View>
 
               <View style={{ flex: 1 }} />
               {/* Greeting */}
-              <Text style={styles.dateText}>{formatDate(new Date())}</Text>
-              <Text style={styles.greeting} numberOfLines={2}>
+              <Text style={[styles.dateText, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]}>{formatDate(new Date())}</Text>
+              <Text style={[styles.greeting, { color: theme.heading }]} numberOfLines={2}>
                 {t(getGreetingKey())},{'\n'}Thashin
               </Text>
             </View>
@@ -524,18 +524,18 @@ const styles = StyleSheet.create({
   locationTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.md,
-    color: Colors.indigo,
+    color: Colors.white,
   },
   dateText: {
     fontFamily: FontFamily.regular,
     fontSize: FontSize.sm,
-    color: Colors.indigo,
+    color: '#A3C7FF',
     marginBottom: 4,
   },
   greeting: {
     fontFamily: FontFamily.extraBold,
     fontSize: 40,
-    color: Colors.indigo,
+    color: Colors.white,
     lineHeight: 50,
   },
 

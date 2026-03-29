@@ -16,7 +16,7 @@ import { signupUser } from '../api/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import CloudHeader from '../components/CloudHeader';
 import GoogleIcon from '../components/GoogleIcon';
 import { Colors, FontFamily, FontSize } from '../theme';
@@ -33,6 +33,8 @@ export default function SignUpScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignup = async () => {
@@ -118,24 +120,34 @@ export default function SignUpScreen({ navigation }: Props) {
               />
 
               <Text style={[styles.label, { color: theme.labelText }]}>Password</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.inputText }]}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                placeholderTextColor={theme.placeholderColor}
-              />
+              <View style={styles.inputWrap}>
+                <TextInput
+                  style={[styles.input, styles.inputWithIcon, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.inputText }]}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  placeholderTextColor={theme.placeholderColor}
+                />
+                <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(v => !v)} hitSlop={8}>
+                  <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={theme.placeholderColor} />
+                </TouchableOpacity>
+              </View>
 
               <Text style={[styles.label, { color: theme.labelText }]}>Confirm Password</Text>
-              <TextInput
-                style={[styles.input, { marginBottom: 24, backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.inputText }]}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                placeholderTextColor={theme.placeholderColor}
-              />
+              <View style={[styles.inputWrap, { marginBottom: 24 }]}>
+                <TextInput
+                  style={[styles.input, styles.inputWithIcon, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.inputText }]}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                  placeholderTextColor={theme.placeholderColor}
+                />
+                <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowConfirmPassword(v => !v)} hitSlop={8}>
+                  <Ionicons name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={theme.placeholderColor} />
+                </TouchableOpacity>
+              </View>
 
               <TouchableOpacity
                 style={styles.primaryBtn}
@@ -240,6 +252,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFBFF',
     marginBottom: 16,
   },
+  inputWrap: { marginBottom: 16 },
+  inputWithIcon: { marginBottom: 0, paddingRight: 48 },
+  eyeBtn: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
   primaryBtn: {
     backgroundColor: Colors.indigo,
     paddingVertical: 17,

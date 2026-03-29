@@ -13,7 +13,7 @@ export function useAppTheme() {
     background:         isDark ? Colors.indigo        : Colors.cloudBlue,
     surface:            isDark ? 'rgba(255,255,255,0.15)' : Colors.white,
     surfaceSecondary:   isDark ? 'rgba(255,255,255,0.08)' : Colors.cloudBlue,
-    surfaceModal:       isDark ? 'rgba(255,255,255,0.12)' : Colors.white,
+    surfaceModal:       isDark ? '#403E79'                : Colors.white,
 
     // ── Text ─────────────────────────────────────────────────
     heading:            isDark ? '#FFFFFF'            : Colors.indigo,
