@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import IntakeLayout from '../components/IntakeLayout';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
@@ -59,7 +60,10 @@ export default function MedicineScreen({ navigation }: Props) {
       onSearch={setSearch}
       onBack={() => navigation.goBack()}
       buttonLabel={selected.length > 0 ? t('common.continue') : t('common.skip_for_now')}
-      onButton={() => navigation.navigate('InsuranceProvider')}
+      onButton={async () => {
+        await AsyncStorage.setItem('@pref_medicine', JSON.stringify(selected));
+        navigation.navigate('InsuranceProvider');
+      }}
     >
       {filtered.map((med) => {
         const isSelected = selected.includes(med.id);

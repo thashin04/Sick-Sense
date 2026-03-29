@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import IntakeLayout from '../components/IntakeLayout';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
@@ -42,7 +43,10 @@ export default function LanguageScreen({ navigation }: Props) {
       searchValue={search}
       onSearch={setSearch}
       buttonLabel={t('common.continue')}
-      onButton={() => navigation.navigate('Medicine')}
+      onButton={async () => {
+        await AsyncStorage.setItem('@pref_language', selected);
+        navigation.navigate('Medicine');
+      }}
     >
       {filtered.map((lang) => {
         const isSelected = selected === lang.id;

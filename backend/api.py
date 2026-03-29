@@ -64,6 +64,12 @@ class AuthLoginRequest(BaseModel):
 class AuthOAuthRequest(BaseModel):
     id_token: str
 
+class UserPreferencesRequest(BaseModel):
+    uid: str
+    language: str | None = None
+    otc_medicine: list[str] | None = None
+    insurance_provider: str | None = None
+
 
 @app.get("/api/health")
 async def health_check():
@@ -240,5 +246,19 @@ async def auth_oauth(request: AuthOAuthRequest):
         return {"status": "success", "user": user_info}
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.post("/api/user/preferences")
+async def api_update_user_preferences(request: UserPreferencesRequest):
+    """Updates a user's preferences (language, medicine, insurance)."""
+    from backend.db.firebase import update_user_preferences
+    try:
+        # Pass a dictionary of established values (drop None)
+        prefs_dict = request.model_dump(exclude_unset=True, exclude_none=True, exclude={"uid": True})
+        update_user_preferences(request.uid, prefs_dict)
+        return {"status": "success"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")

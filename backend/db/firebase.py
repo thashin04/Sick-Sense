@@ -235,3 +235,22 @@ def verify_oauth_login(id_token: str) -> dict:
         print(f"[Firebase] OAuth verification error: {e}")
         raise ValueError("Invalid authentication token")
 
+def update_user_preferences(uid: str, preferences: dict) -> bool:
+    """Updates a user's preferences in Firestore."""
+    db = init_firebase()
+    if not db:
+        raise RuntimeError("Firebase not initialized")
+
+    try:
+        user_ref = db.collection("users").document(uid)
+        
+        # Check if user exists
+        if not user_ref.get().exists:
+            raise ValueError("User not found")
+            
+        user_ref.set({"preferences": preferences}, merge=True)
+        return True
+    except Exception as e:
+        print(f"[Firebase] Error updating preferences: {e}")
+        raise ValueError("Could not save user preferences")
+

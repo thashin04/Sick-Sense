@@ -8,7 +8,11 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { signupUser } from '../api/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -27,6 +31,31 @@ export default function SignUpScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSignup = async () => {
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert('Missing Fields', 'Please fill in all details.');
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      Alert.alert('Passwords Mismatch', 'Your passwords do not match. Please try again.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await signupUser(email, password, name);
+      // Save backend user reference
+      await AsyncStorage.setItem('@user_auth', JSON.stringify(response.user));
+      navigation.navigate('Language');
+    } catch (error: any) {
+      Alert.alert('Sign Up Failed', error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -109,9 +138,14 @@ export default function SignUpScreen({ navigation }: Props) {
               <TouchableOpacity
                 style={styles.primaryBtn}
                 activeOpacity={0.85}
-                onPress={() => navigation.navigate('Language')}
+                onPress={handleSignup}
+                disabled={isLoading}
               >
-                <Text style={styles.primaryTxt}>Sign Up</Text>
+                {isLoading ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.primaryTxt}>Sign Up</Text>
+                )}
               </TouchableOpacity>
 
               <View style={styles.footerRow}>
