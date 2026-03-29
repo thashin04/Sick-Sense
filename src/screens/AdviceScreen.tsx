@@ -164,7 +164,7 @@ export default function AdviceScreen({ navigation }: Props) {
       }
     }
     fetchAdvice();
-  }, []);
+  }, [selectedCity]);
 
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>

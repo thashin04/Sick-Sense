@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import MapboxGL from '@rnmapbox/maps';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useLocation } from '../context/LocationContext';
 import AreaDetailModal, { AreaDetail } from '../components/modals/AreaDetailModal';
 import MapFilterModal, { MapFilters } from '../components/modals/MapFilterModal';
 import { Colors, FontFamily, FontSize } from '../theme';
@@ -91,6 +92,7 @@ function scoreColor(score: number) {
 export default function MapScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const theme = useAppTheme();
+  const { selectedCity } = useLocation();
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
   const [selectedArea, setSelectedArea] = useState<AreaDetail>(TAMPA_DEFAULT);
@@ -98,6 +100,7 @@ export default function MapScreen({ navigation }: Props) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [heatmapData, setHeatmapData] = useState<GeoJSON.FeatureCollection>(EMPTY_GEOJSON);
+  const cameraRef = useRef<MapboxGL.Camera>(null);
 
   const visibleMarkers = markers.filter((m) => markerVisible(m.type, filters));
 
@@ -122,7 +125,7 @@ export default function MapScreen({ navigation }: Props) {
           if (heatData.features && heatData.features.length > 0) {
             const firstFeature = heatData.features[0].properties;
             setSelectedArea({
-              name: firstFeature.city,
+              name: firstFeature.display_name || firstFeature.city,
               city: firstFeature.city,
               state: firstFeature.state || 'FL',
               riskScore: firstFeature.risk_score || 0,
@@ -137,13 +140,44 @@ export default function MapScreen({ navigation }: Props) {
       }
     }
     fetchMapData();
-  }, []);
+  }, [selectedCity]);
+
+  // Center camera when city changes
+  React.useEffect(() => {
+    if (heatmapData.features.length > 0) {
+      const cityKey = selectedCity.toLowerCase().replace(" ", "_");
+      const feature = heatmapData.features.find(f => 
+        f.properties?.city?.toLowerCase() === cityKey || 
+        f.properties?.display_name?.toLowerCase() === selectedCity.toLowerCase()
+      );
+      
+      if (feature && feature.geometry.type === 'Point') {
+        const coords = feature.geometry.coordinates as [number, number];
+        cameraRef.current?.setCamera({
+          centerCoordinate: coords,
+          zoomLevel: 11,
+          animationDuration: 1000,
+        });
+        
+        // Also update the selected area card
+        setSelectedArea({
+          name: feature.properties?.display_name || feature.properties?.city,
+          city: feature.properties?.city,
+          state: feature.properties?.state || 'FL',
+          riskScore: feature.properties?.risk_score || 0,
+          riskLevel: feature.properties?.risk_level || 'Low',
+          transmissionRate: 1.0 + (feature.properties?.weight * 0.5),
+          alerts: feature.properties?.alerts || [],
+        });
+      }
+    }
+  }, [selectedCity, heatmapData]);
 
   const handleHeatmapPress = (event: any) => {
     if (event.features && event.features.length > 0) {
       const featureData = event.features[0].properties;
       setSelectedArea({
-        name: featureData.city,
+        name: featureData.display_name || featureData.city,
         city: featureData.city,
         state: featureData.state || 'FL',
         riskScore: featureData.risk_score || 0,
@@ -191,6 +225,7 @@ export default function MapScreen({ navigation }: Props) {
           attributionEnabled={false}
         >
           <MapboxGL.Camera
+            ref={cameraRef}
             centerCoordinate={INITIAL_COORDS}
             zoomLevel={11}
             animationMode="none"
