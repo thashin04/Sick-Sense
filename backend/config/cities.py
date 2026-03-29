@@ -88,12 +88,21 @@ FLORIDA_CITIES: dict[str, CityConfig] = {
 
 
 def get_city(city_key: str) -> CityConfig:
-    """Look up a city by key (case-insensitive, underscores/spaces tolerated)."""
-    key = city_key.lower().replace(" ", "_").replace(".", "")
+    """Look up a city by key (case-insensitive, underscores/spaces/common suffixes tolerated)."""
+    # Clean up common suffixes like ", Florida" or ", FL"
+    clean_key = city_key.split(',')[0].strip()
+    
+    # Use case-insensitive check for suffixes
+    if clean_key.lower().endswith(" florida"):
+        clean_key = clean_key[:-8].strip()
+    elif clean_key.lower().endswith(" fl"):
+        clean_key = clean_key[:-3].strip()
+    
+    key = clean_key.lower().replace(" ", "_").replace(".", "")
     if key in FLORIDA_CITIES:
         return FLORIDA_CITIES[key]
 
     for k, v in FLORIDA_CITIES.items():
-        if v.name.lower() == city_key.lower():
+        if v.name.lower() == clean_key.lower():
             return v
     raise ValueError(f"Unknown city: {city_key}. Available: {list(FLORIDA_CITIES.keys())}")

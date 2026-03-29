@@ -146,41 +146,41 @@ def finalize_assessment(
 
 def save_risk_and_stock_to_db(
     city: str,
-    seasonal_flu_risk: str,
-    common_cold_risk: str,
-    other_viruses_risk: dict,
+    seasonal_flu_risk: dict,
+    common_cold_risk: dict,
+    other_viruses_risk: list[dict],
     otc_stock: list[dict]
 ) -> dict:
     """Save the local risk levels and OTC stock status to the database.
 
     Args:
         city: The name of the city.
-        seasonal_flu_risk: Risk level for Seasonal Flu (e.g., 'Low', 'High').
-        common_cold_risk: Risk level for Common Cold (e.g., 'Low', 'High').
-        other_viruses_risk: Dictionary mapping any other suspected viruses/illnesses to their risk levels based on the data.
-        otc_stock: List of dictionaries. Each must contain 'name' (medication name), 'status' ('In Stock' or 'Limited'), and 'stock_level' (the raw percentage or count).
+        seasonal_flu_risk: Dict with 'level' (e.g., 'Low', 'High') and 'description' (reasoning).
+        common_cold_risk: Dict with 'level' (e.g., 'Low', 'High') and 'description' (reasoning).
+        other_viruses_risk: List of dicts with 'name', 'level', and 'description'.
+        otc_stock: List of dictionaries with 'name', 'status' ('In Stock'/'Limited'), and 'stock_level'.
 
     Returns:
         dict confirming save success or failure.
     """
-    from backend.db.firebase import init_firebase
+    from backend.db.firebase import save_city_summary
+    from backend.config.cities import get_city
     from datetime import datetime, timezone
     
-    db = init_firebase()
-    if not db:
-        return {"error": "Firebase not initialized."}
-        
     try:
-        doc_ref = db.collection("city_health_summaries").document(city)
+        # Resolve standardized city name (e.g. "Tampa, Florida" -> "Tampa")
+        city_cfg = get_city(city)
+        standard_city = city_cfg.name
+        
         now_iso = datetime.now(timezone.utc).isoformat()
         
-        doc_ref.set({
-            "city": city,
+        summary_data = {
+            "city": standard_city,
             "timestamp": now_iso,
             "local_risk_levels": {
                 "seasonal_flu": seasonal_flu_risk,
                 "common_cold": common_cold_risk,
-                **other_viruses_risk
+                "others": other_viruses_risk
             },
             "otc_stock": [
                 {
@@ -190,8 +190,13 @@ def save_risk_and_stock_to_db(
                     "updated_at": now_iso
                 } for item in otc_stock
             ]
-        })
-        return {"status": "SUCCESS", "message": f"Saved summary for {city} to city_health_summaries."}
+        }
+        
+        success = save_city_summary(city, summary_data)
+        if success:
+            return {"status": "SUCCESS", "message": f"Saved assessment for {city}."}
+        else:
+            return {"error": "Failed to save to database."}
     except Exception as e:
         return {"error": str(e)}
 
@@ -230,8 +235,8 @@ _analysis_agent = Agent(
         "9. If ANY check fails, revise your assessment and call validate_assessment "
         "   again with the corrected version.\n"
         "10. Once ALL checks pass, you MUST call save_risk_and_stock_to_db to persist specific data:\n"
-        "    - Determine localized risk levels for Seasonal Flu and Common Cold based on the data.\n"
-        "    - Identify ANY other specific sicknesses (e.g. COVID, stomach bug, strep) active in the area and their risk levels.\n"
+        "    - Determine localized risk levels for Seasonal Flu and Common Cold. Return a dict with 'level' (Low/Moderate/High) and 'description' (short reasoning string like 'Elevated pollen count').\n"
+        "    - Identify ANY other specific illnesses (e.g. COVID, stomach bug) and their risk levels (as a list of dicts with name, level, description).\n"
         "    - Extract ALL OTC stock data provided by the Scout. Set status to 'Limited' if stock < 50%, else 'In Stock'. Include the absolute stock_level value.\n"
         "11. After saving, call the finalize_assessment tool with your "
         "    complete final assessment to lock it in and exit the loop.\n\n"

@@ -59,16 +59,6 @@ def main():
             "backend.api:app", host="0.0.0.0", port=api_port, log_level="info",
         ))
 
-        # Initialize background jobs
-        from apscheduler.schedulers.asyncio import AsyncIOScheduler
-        from backend.jobs.hourly_check import run_hourly_check
-        from backend.jobs.daily_report import generate_and_save_daily_reports
-
-        scheduler = AsyncIOScheduler()
-        # scheduler.add_job(run_hourly_check, 'interval', minutes=1, id="hourly_scan") # change minutes to hours
-        # scheduler.add_job(generate_and_save_daily_reports, 'interval', minutes=2, id="daily_tts_report") # Generate every morning at 7AM; change 'interval' to 'cron' and change minutes=2 to hours=1
-        scheduler.start()
-
         await asyncio.gather(
             scout_server.serve(),
             analyst_server.serve(),

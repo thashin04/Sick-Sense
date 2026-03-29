@@ -120,6 +120,27 @@ def get_city_summary(city: str) -> dict | None:
         print(f"[Firebase] Error retrieving city summary: {e}")
         return None
 
+def save_city_summary(city: str, summary_data: dict) -> bool:
+    """
+    Saves or updates a structured health summary for a specific city.
+    Uses merge=True to allow different agents to update different fields.
+    """
+    db = init_firebase()
+    if not db:
+        return False
+
+    try:
+        doc_ref = db.collection("city_health_summaries").document(city)
+        # Add server-side timestamp mapping if not provided
+        if "timestamp" not in summary_data:
+            summary_data["timestamp"] = datetime.now(timezone.utc).isoformat()
+            
+        doc_ref.set(summary_data, merge=True)
+        return True
+    except Exception as e:
+        print(f"[Firebase] Error saving city summary: {e}")
+        return False
+
 # --- AUTHENTICATION METHODS ---
 
 def _hash_password(password: str, salt: bytes = None) -> tuple[str, str]:

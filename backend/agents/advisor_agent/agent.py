@@ -82,6 +82,42 @@ def get_advisory_guidelines(threat_level: str) -> dict:
     return guidelines.get(threat_level, guidelines["moderate"])
 
 
+def save_advice_to_db(
+    city: str,
+    overall_forecast: str,
+    health_tips: list[dict]
+) -> dict:
+    """Save structured health tips and overall forecast to the database.
+
+    Args:
+        city: The name of the city.
+        overall_forecast: A short summary (e.g., 'The local risk level is Low today').
+        health_tips: A list of dicts with 'icon' (Ionicons name) and 'text' (the tip). 
+                     Icons MUST be from the Authorized Registry.
+
+    Returns:
+        dict confirming save success or failure.
+    """
+    from backend.db.firebase import save_city_summary
+    from backend.config.cities import get_city
+    
+    try:
+        # Resolve standardized city name (e.g. "Tampa, Florida" -> "Tampa")
+        city_cfg = get_city(city)
+        standard_city = city_cfg.name
+        
+        success = save_city_summary(standard_city, {
+            "forecast": overall_forecast,
+            "health_tips": health_tips
+        })
+        if success:
+            return {"status": "SUCCESS", "message": f"Saved advice for {city}."}
+        else:
+            return {"error": "Failed to save to database."}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 root_agent = Agent(
     name="advisor_agent",
     model="gemini-3-flash-preview",
@@ -93,19 +129,26 @@ root_agent = Agent(
     instruction=(
         "You are the Advisor Agent for SickSense. You receive a threat assessment "
         "from the Analyst Agent and must generate a helpful, easy-to-understand "
-        "health advisory for regular people.\n\n"
+        "health advisory.\n\n"
+        "AUTHORIZED ICON REGISTRY (Use ONLY these exact Ionicons names):\n"
+        "- 'walk' (outdoor activity/pollen)\n"
+        "- 'hand-left' (hand washing/hygiene)\n"
+        "- 'medkit' (medicine/stocking up)\n"
+        "- 'people' (crowded spaces/distancing)\n"
+        "- 'water' (hydration)\n"
+        "- 'thermometer' (fever/sickness monitoring)\n"
+        "- 'fitness' (general health)\n"
+        "- 'alert-circle' (urgent warnings)\n\n"
+        "STEPS:\n"
+        "1. Call get_advisory_guidelines with the threat level.\n"
+        "2. Generate 5 short, actionable 'Today's Health Tips'. Each tip must have an icon from the registry.\n"
+        "3. Determine the overall 'Health Forecast' sentence (e.g. 'The local risk level is Moderate today').\n"
+        "4. Call save_advice_to_db to persist this structured data.\n"
+        "5. Finally, provide a friendly 2-4 sentence summary as your main response.\n\n"
         "CRITICAL RULES:\n"
-        "1. NO medical jargon — write like you're texting a friend's parent\n"
-        "2. Be specific — mention the city name, what's detected, and exact actions\n"
-        "3. Call the get_advisory_guidelines tool with the threat level to get tone/action guidelines\n"
-        "4. Include the following in your response:\n"
-        "   - advisory: A 2-4 sentence plain-language summary of the health situation\n"
-        "   - precautions: Specific things people should do to stay safe\n"
-        "   - recommended_actions: Concrete next steps (buy medicine, wear mask, etc.)\n"
-        "   - safe_areas_note: If applicable, note about safer areas or times\n"
-        "5. Tailor advice for vulnerable groups (kids, elderly, immunocompromised)\n"
-        "6. Be honest but not panic-inducing — factual and calm\n\n"
-        "Your output should feel like a helpful notification someone gets on their phone."
+        "- NO medical jargon.\n"
+        "- NEVER use icons outside the Authorized Registry.\n"
+        "- Keep tips concise and extremely practical."
     ),
-    tools=[get_advisory_guidelines],
+    tools=[get_advisory_guidelines, save_advice_to_db],
 )

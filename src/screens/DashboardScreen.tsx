@@ -140,6 +140,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const [transcript, setTranscript] = useState('Fetching daily report...');
   const [audioDuration, setAudioDuration] = useState('0:00');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [quickTip, setQuickTip] = useState(QUICK_TIP);
   
   // Modern Expo Audio Player (Canary 55)
   const player = useAudioPlayer('http://localhost:8000/api/city/Tampa/audio-report');
@@ -202,15 +203,45 @@ export default function DashboardScreen({ navigation }: Props) {
         if (sumRes && sumRes.ok) {
           const data = await sumRes.json();
           console.log('[Dashboard] Summary data received.');
+          
+          if (data.forecast) {
+            setQuickTip(data.forecast);
+          }
+
           if (data.local_risk_levels) {
             const newRisks: RiskLevel[] = [];
-            if (data.local_risk_levels.seasonal_flu) {
-              newRisks.push({ name: 'Seasonal Flu', level: data.local_risk_levels.seasonal_flu, icon: 'nuclear-outline' });
+            
+            // Handle flu/cold which might be objects or strings
+            const flu = data.local_risk_levels.seasonal_flu;
+            const cold = data.local_risk_levels.common_cold;
+            
+            if (flu) {
+              newRisks.push({ 
+                name: 'Seasonal Flu', 
+                level: (typeof flu === 'string' ? flu : flu.level) as RiskLevel['level'], 
+                icon: 'nuclear-outline' 
+              });
             }
-            if (data.local_risk_levels.common_cold) {
-              newRisks.push({ name: 'Common Cold', level: data.local_risk_levels.common_cold, icon: 'thermometer-outline' });
+            if (cold) {
+              newRisks.push({ 
+                name: 'Common Cold', 
+                level: (typeof cold === 'string' ? cold : cold.level) as RiskLevel['level'], 
+                icon: 'thermometer-outline' 
+              });
             }
-            if (newRisks.length > 0) setRiskLevels(newRisks);
+            
+            // Handle extras
+            if (data.local_risk_levels.others && Array.isArray(data.local_risk_levels.others)) {
+              data.local_risk_levels.others.slice(0, 1).forEach((other: any) => {
+                newRisks.push({
+                  name: other.name,
+                  level: other.level as RiskLevel['level'],
+                  icon: 'alert-circle-outline'
+                });
+              });
+            }
+
+            if (newRisks.length > 0) setRiskLevels(newRisks.slice(0, 3));
           }
 
           if (data.otc_stock) {
@@ -402,7 +433,7 @@ export default function DashboardScreen({ navigation }: Props) {
             <Ionicons name="warning-outline" size={16} color={Colors.sunlight} />
             <Text style={styles.tipLabel}>  {t('dashboard.quick_tip_label')}</Text>
           </View>
-          <Text style={styles.tipBody}>{QUICK_TIP}</Text>
+          <Text style={styles.tipBody}>{quickTip}</Text>
         </View>
 
         <View style={{ height: 16 }} />

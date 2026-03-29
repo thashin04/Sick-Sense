@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import asyncio
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -136,7 +137,7 @@ async def scan_city(request: ScanRequest):
 
         user_message = types.Content(
             role="user",
-            parts=[types.Part(text=f"Scan {city_cfg.name}, Florida for health outbreaks, specifically tracking the risks for Seasonal Flu and Common Cold. Run the full pipeline.")],
+            parts=[types.Part(text=f"Scan for {city_cfg.name}, Florida health outbreaks. Tracking Seasonal Flu and Common Cold. Return all analysis and advice SPECIFICALLY for the city identifier: {city_cfg.name}")],
         )
 
         final_response = ""
@@ -239,6 +240,24 @@ async def scan_all_cities():
                 "status": "failed",
             })
     return {"results": results, "total": len(results)}
+    
+@app.post("/api/jobs/daily-report")
+async def manual_daily_report_job():
+    """Manual trigger for the Daily Health Report (TTS generation)."""
+    from backend.jobs.daily_report import generate_and_save_daily_reports
+    print("[API] Manual trigger: Daily Report Generation")
+    # Run in background to avoid blocking the API response
+    asyncio.create_task(generate_and_save_daily_reports())
+    return {"status": "success", "message": "Daily report generation started in background."}
+
+@app.post("/api/jobs/hourly-scan")
+async def manual_hourly_scan_job():
+    """Manual trigger for the Global Health Scan (Scout -> Analyst -> Advisor)."""
+    from backend.jobs.hourly_check import run_hourly_check
+    print("[API] Manual trigger: Global Hourly Scan")
+    # Run in background to avoid blocking the API response
+    asyncio.create_task(run_hourly_check())
+    return {"status": "success", "message": "Global health scan started in background."}
 
 
 # --- AUTHENTICATION ENDPOINTS ---

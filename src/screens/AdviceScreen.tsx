@@ -84,6 +84,73 @@ export default function AdviceScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const HEADER_H = 190;
   const [inNetworkOpen, setInNetworkOpen] = React.useState(false);
+  const [tips, setTips] = React.useState<ActionableTip[]>(ACTIONABLE_TIPS);
+  const [risks, setRisks] = React.useState<RiskAnalysisItem[]>(RISK_ITEMS);
+  const [forecast, setForecast] = React.useState('Moderate');
+
+  React.useEffect(() => {
+    async function fetchAdvice() {
+      try {
+        const res = await fetch('http://localhost:8000/api/city/Tampa/summary');
+        if (res.ok) {
+          const data = await res.json();
+          
+          if (data.forecast) {
+            // Extract the risk word (e.g. 'Moderate') from the forecast sentence if possible
+            const match = data.forecast.match(/risk level is (\w+)/i);
+            if (match) setForecast(match[1]);
+          }
+
+          if (data.health_tips && Array.isArray(data.health_tips)) {
+            setTips(data.health_tips.map((t: any) => ({
+              icon: `${t.icon}-outline` as any, // Append -outline to match frontend design
+              tip: t.text
+            })));
+          }
+
+          if (data.local_risk_levels) {
+            const newRisks: RiskAnalysisItem[] = [];
+            
+            const flu = data.local_risk_levels.seasonal_flu;
+            const cold = data.local_risk_levels.common_cold;
+            
+            if (flu && typeof flu === 'object') {
+              newRisks.push({
+                name: 'Seasonal Flu',
+                subtext: 'Localized Assessment',
+                percent: (flu.level === 'High' ? 80 : flu.level === 'Moderate' ? 50 : 20),
+                description: flu.description
+              });
+            }
+            if (cold && typeof cold === 'object') {
+              newRisks.push({
+                name: 'Common Cold',
+                subtext: 'Localized Assessment',
+                percent: (cold.level === 'High' ? 80 : cold.level === 'Moderate' ? 50 : 20),
+                description: cold.description
+              });
+            }
+
+            if (data.local_risk_levels.others && Array.isArray(data.local_risk_levels.others)) {
+              data.local_risk_levels.others.forEach((other: any) => {
+                newRisks.push({
+                  name: other.name,
+                  subtext: 'Detected Signal',
+                  percent: (other.level === 'High' ? 80 : other.level === 'Moderate' ? 50 : 20),
+                  description: other.description
+                });
+              });
+            }
+            
+            if (newRisks.length > 0) setRisks(newRisks);
+          }
+        }
+      } catch (e) {
+        console.error('[Advice] Fetch failed:', e);
+      }
+    }
+    fetchAdvice();
+  }, []);
 
   return (
     <View style={styles.root}>
@@ -116,7 +183,7 @@ export default function AdviceScreen({ navigation }: Props) {
               <Text style={styles.pageTitle}>{t('advice.page_title')}</Text>
               <Text style={styles.pageSubtitle}>
                 "The local risk level is{' '}
-                <Text style={styles.riskWord}>Moderate</Text>
+                <Text style={styles.riskWord}>{forecast}</Text>
                 {' '}today, Shin."
               </Text>
             </View>
@@ -130,10 +197,10 @@ export default function AdviceScreen({ navigation }: Props) {
             <Ionicons name="bulb-outline" size={18} color={Colors.indigo} />
             <Text style={styles.cardTitle}>  {t('advice.tips_title')}</Text>
           </View>
-          {ACTIONABLE_TIPS.map((item, i) => (
+          {tips.map((item, i) => (
             <View
               key={i}
-              style={[styles.tipRow, i < ACTIONABLE_TIPS.length - 1 && styles.tipRowBorder]}
+              style={[styles.tipRow, i < tips.length - 1 && styles.tipRowBorder]}
             >
               <View style={styles.tipIconWrap}>
                 <Ionicons name={item.icon} size={18} color={Colors.indigo} />
@@ -150,7 +217,7 @@ export default function AdviceScreen({ navigation }: Props) {
             <Text style={styles.cardTitle}>  {t('advice.risk_analysis_title')}</Text>
           </View>
 
-          {RISK_ITEMS.map((item, i) => (
+          {risks.map((item, i) => (
             <View key={i} style={styles.riskCard}>
               <View style={styles.riskCardHeader}>
                 <View style={{ flex: 1 }}>
