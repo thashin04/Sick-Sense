@@ -50,6 +50,21 @@ class SelfReportRequest(BaseModel):
     location: str
 
 
+class AuthSignupRequest(BaseModel):
+    email: str
+    password: str
+    name: str | None = None
+
+
+class AuthLoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class AuthOAuthRequest(BaseModel):
+    id_token: str
+
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok", "service": "sicksense", "timestamp": datetime.now(timezone.utc).isoformat()}
@@ -188,3 +203,42 @@ async def scan_all_cities():
                 "status": "failed",
             })
     return {"results": results, "total": len(results)}
+
+
+# --- AUTHENTICATION ENDPOINTS ---
+
+@app.post("/api/auth/signup")
+async def auth_signup(request: AuthSignupRequest):
+    """Registers a new user using Email/Password custom logic."""
+    from backend.db.firebase import create_user
+    try:
+        user_info = create_user(request.email, request.password, request.name)
+        return {"status": "success", "user": user_info}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.post("/api/auth/login")
+async def auth_login(request: AuthLoginRequest):
+    """Authenticates a user via custom custom Email/Password logic."""
+    from backend.db.firebase import verify_password_login
+    try:
+        user_info = verify_password_login(request.email, request.password)
+        return {"status": "success", "user": user_info}
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.post("/api/auth/oauth")
+async def auth_oauth(request: AuthOAuthRequest):
+    """Verifies a Google/Apple OAuth token and registers/logs in the user."""
+    from backend.db.firebase import verify_oauth_login
+    try:
+        user_info = verify_oauth_login(request.id_token)
+        return {"status": "success", "user": user_info}
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
