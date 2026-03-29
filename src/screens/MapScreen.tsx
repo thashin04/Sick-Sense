@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -113,6 +113,20 @@ export default function MapScreen({ navigation }: Props) {
 
   const visibleMarkers = ALL_MARKERS.filter((m) => markerVisible(m.type, filters));
 
+  const filteredHeatmap = useMemo(() => {
+    if (!heatmapData) return null;
+    return {
+      ...heatmapData,
+      features: heatmapData.features.filter((f: any) => {
+        const level = f.properties?.risk_level;
+        if (level === 'high' && !filters.highRisk) return false;
+        if (level === 'medium' && !filters.mediumRisk) return false;
+        if (level === 'low' && !filters.lowRisk) return false;
+        return true;
+      }),
+    };
+  }, [heatmapData, filters]);
+
   return (
     <View style={styles.root}>
       {/* ── Search bar ── */}
@@ -156,8 +170,8 @@ export default function MapScreen({ navigation }: Props) {
           />
 
           {/* Heatmap outbreak layer */}
-          {heatmapData && (
-            <MapboxGL.ShapeSource id="outbreak-source" shape={heatmapData}>
+          {filteredHeatmap && (
+            <MapboxGL.ShapeSource id="outbreak-source" shape={filteredHeatmap}>
               <MapboxGL.HeatmapLayer
                 id="outbreak-heat"
                 sourceID="outbreak-source"

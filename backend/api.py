@@ -198,7 +198,10 @@ async def get_heatmap_data():
                 
                 point = {
                     "type": "Feature",
-                    "properties": { "weight": min(1.0, total_risk / 5.0) },
+                    "properties": { 
+                        "weight": min(1.0, total_risk / 5.0),
+                        "risk_level": "high" if total_risk >= 2.5 else ("medium" if total_risk >= 1.0 else "low")
+                    },
                     "geometry": { "type": "Point", "coordinates": [lng, lat] }
                 }
                 features.append(point)
