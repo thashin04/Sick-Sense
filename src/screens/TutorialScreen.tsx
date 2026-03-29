@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Image, ImageSourcePropType, StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import TutorialLayout from '../components/TutorialLayout';
-import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 
 type Props = {
@@ -11,24 +11,41 @@ type Props = {
 
 interface Step {
   subtitle: string;
-  // Replace each require() with the actual tutorial screenshot asset
-  image: ImageSourcePropType | null;
+  body: string;
+  video: number;
 }
 
 const STEPS: Step[] = [
   {
     subtitle: 'Dashboard Features',
-    image: null, // TODO: replace with require('../assets/tutorial-dashboard.png')
+    body: 'Get a real-time snapshot of health activity in your area. See outbreak risk levels, active alerts, and a summary of local signals — all in one place.',
+    video: require('../assets/tutorial/home.MOV'),
   },
   {
     subtitle: 'Map & Risk Levels',
-    image: null, // TODO: replace with require('../assets/tutorial-map.png')
+    body: 'Explore an interactive map showing risk zones near you. Color-coded areas help you quickly spot high-risk neighborhoods before heading out.',
+    video: require('../assets/tutorial/map.MOV'),
   },
   {
     subtitle: 'Health Reports',
-    image: null, // TODO: replace with require('../assets/tutorial-reports.png')
+    body: 'Read AI-generated health advisories tailored to your location. Get plain-language guidance on what to watch for and how to stay safe.',
+    video: require('../assets/tutorial/advice.MOV'),
   },
 ];
+
+function TutorialVideo({ source }: { source: number }) {
+  const player = useVideoPlayer(source, p => {
+    p.loop = true;
+    p.muted = true;
+    p.play();
+  });
+
+  return (
+    <View style={styles.videoWrap}>
+      <VideoView player={player} style={styles.video} contentFit="cover" nativeControls={false} />
+    </View>
+  );
+}
 
 export default function TutorialScreen({ navigation }: Props) {
   const [step, setStep] = useState(0);
@@ -51,7 +68,6 @@ export default function TutorialScreen({ navigation }: Props) {
   }
 
   function handleSkip() {
-    // TODO: navigate to the main app (Dashboard) once that screen exists
     navigation.navigate('Landing');
   }
 
@@ -64,35 +80,19 @@ export default function TutorialScreen({ navigation }: Props) {
       onBack={handleBack}
       onNext={handleNext}
       onSkip={handleSkip}
-      cardContent={
-        current.image ? (
-          <Image source={current.image} style={styles.cardImage} resizeMode="contain" />
-        ) : (
-          // Placeholder until real assets are added
-          <View style={styles.placeholder}>
-            <Text style={styles.placeholderTxt}>{current.subtitle}</Text>
-          </View>
-        )
-      }
+      body={current.body}
+      cardContent={<TutorialVideo key={step} source={current.video} />}
     />
   );
 }
 
 const styles = StyleSheet.create({
-  cardImage: {
+  videoWrap: {
     width: '100%',
     height: '100%',
   },
-  placeholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  placeholderTxt: {
-    fontFamily: FontFamily.semiBold,
-    fontSize: FontSize.lg,
-    color: Colors.lightMidBlue,
-    textAlign: 'center',
+  video: {
+    width: '100%',
+    height: '100%',
   },
 });

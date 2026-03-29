@@ -16,6 +16,7 @@ import { useAppTheme } from '../hooks/useAppTheme';
 interface Props {
   title: string;
   subtitle: string;
+  body?: string;
   cardContent: ReactNode;
   currentStep: number;
   totalSteps: number;
@@ -27,6 +28,7 @@ interface Props {
 export default function TutorialLayout({
   title,
   subtitle,
+  body,
   cardContent,
   currentStep,
   totalSteps,
@@ -70,6 +72,10 @@ export default function TutorialLayout({
               />
             ))}
           </View>
+
+          {body && (
+            <Text style={[styles.body, { color: theme.body }]}>{body}</Text>
+          )}
         </View>
       </ScrollView>
 
@@ -129,6 +135,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
+  body: {
+    fontFamily: FontFamily.regular,
+    fontSize: FontSize.md,
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 8,
+    marginTop: 12,
+  },
+
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -143,23 +158,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   btnBack: {
-    flex: 2,
-    paddingVertical: 17,
+    flex: 1,
+    paddingVertical: 14,
     borderRadius: 50,
     alignItems: 'center',
     borderWidth: 1.5,
   },
   btnBackTxt: {
     fontFamily: FontFamily.semiBold,
-    fontSize: FontSize.lg,
+    fontSize: FontSize.md,
   },
   btnNext: {
-    flex: 3,
-    paddingVertical: 17,
+    flex: 1,
+    paddingVertical: 14,
     borderRadius: 50,
     alignItems: 'center',
     shadowOffset: { width: 0, height: 4 },
@@ -169,6 +184,6 @@ const styles = StyleSheet.create({
   },
   btnNextTxt: {
     fontFamily: FontFamily.semiBold,
-    fontSize: FontSize.lg,
+    fontSize: FontSize.md,
   },
 });
