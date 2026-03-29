@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 import InNetworkModal from '../components/modals/InNetworkModal';
@@ -101,6 +102,19 @@ export default function AdviceScreen({ navigation }: Props) {
   const [tips, setTips] = React.useState<ActionableTip[]>(ACTIONABLE_TIPS);
   const [risks, setRisks] = React.useState<RiskAnalysisItem[]>(RISK_ITEMS);
   const [forecast, setForecast] = React.useState('Moderate');
+  const [userInsurance, setUserInsurance] = React.useState<string | undefined>();
+
+  React.useEffect(() => {
+    async function loadPreferences() {
+      try {
+        const ins = await AsyncStorage.getItem('@pref_insurance');
+        if (ins) setUserInsurance(ins);
+      } catch (e) {
+        console.warn('[Advice] Failed to load insurance pref:', e);
+      }
+    }
+    loadPreferences();
+  }, []);
 
   React.useEffect(() => {
     async function fetchAdvice() {
@@ -305,7 +319,8 @@ export default function AdviceScreen({ navigation }: Props) {
       <InNetworkModal
         visible={inNetworkOpen}
         onClose={() => setInNetworkOpen(false)}
-        insurancePlan="Florida Blue"
+        insurancePlan={userInsurance}
+        city={selectedCity}
       />
       <CityPickerModal visible={cityPickerOpen} onClose={() => setCityPickerOpen(false)} />
     </View>
