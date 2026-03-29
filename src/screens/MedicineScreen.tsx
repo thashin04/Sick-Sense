@@ -13,15 +13,13 @@ type Props = {
 };
 
 const MEDICINE_IDS = [
-  'acetaminophen',
-  'ibuprofen',
-  'aspirin',
-  'antihistamines',
-  'cough-syrup',
-  'decongestant',
-  'antacid',
-  'vitamins',
-  'throat-lozenges',
+  'dayquil',
+  'nyquil',
+  'tylenol-cold-flu',
+  'mucinex',
+  'robitussin',
+  'theraflu',
+  'claritin',
 ];
 
 const MAX_SELECT = 4;

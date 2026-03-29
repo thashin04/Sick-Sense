@@ -232,7 +232,7 @@ _analysis_agent = Agent(
         "10. Once ALL checks pass, you MUST call save_risk_and_stock_to_db to persist specific data:\n"
         "    - Determine localized risk levels for Seasonal Flu and Common Cold based on the data.\n"
         "    - Identify ANY other specific sicknesses (e.g. COVID, stomach bug, strep) active in the area and their risk levels.\n"
-        "    - Extract OTC stock data. Set status to 'Limited' if stock < 50%, else 'In Stock'. Include the absolute stock_level value.\n"
+        "    - Extract ALL OTC stock data provided by the Scout. Set status to 'Limited' if stock < 50%, else 'In Stock'. Include the absolute stock_level value.\n"
         "11. After saving, call the finalize_assessment tool with your "
         "    complete final assessment to lock it in and exit the loop.\n\n"
         "IMPORTANT: You MUST call finalize_assessment when done. Do NOT just output "

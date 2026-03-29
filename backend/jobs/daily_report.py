@@ -37,7 +37,7 @@ async def process_city(city_key, city_cfg, client, db):
             runner = Runner(agent=orchestrator, app_name="sicksense", session_service=session_service)
             session = await session_service.create_session(app_name="sicksense", user_id="daily_job")
             
-            prompt_text = f"Scan primarily for {city_cfg.name}, Florida for health outbreaks, and check connected cities ONLY if absolutely needed to trace an outbreak. Run the full pipeline."
+            prompt_text = f"Scan primarily for {city_cfg.name}, Florida for health outbreaks, specifically tracking the risks for Seasonal Flu and Common Cold, and check connected cities ONLY if absolutely needed to trace an outbreak. Run the full pipeline."
             user_message = types.Content(role="user", parts=[types.Part(text=prompt_text)])
             
             async for _ in runner.run_async(user_id="daily_job", session_id=session.id, new_message=user_message):
@@ -66,7 +66,7 @@ async def process_city(city_key, city_cfg, client, db):
 
     try:
         response = await client.aio.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3-flash-preview',
             contents=prompt,
         )
         tts_script = response.text.strip()

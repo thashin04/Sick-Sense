@@ -14,15 +14,13 @@
     "subtitle": "Select up to 4 OTC medicines you use (optional)",
     "search_placeholder": "Search medicines...",
     "items": {
-      "acetaminophen": { "name": "Acetaminophen", "category": "Pain Relief" },
-      "ibuprofen": { "name": "Ibuprofen", "category": "Pain Relief / Anti-inflammatory" },
-      "aspirin": { "name": "Aspirin", "category": "Pain Relief / Blood Thinner" },
-      "antihistamines": { "name": "Antihistamines", "category": "Allergy Relief" },
-      "cough-syrup": { "name": "Cough Syrup", "category": "Cold & Cough Relief" },
-      "decongestant": { "name": "Decongestant", "category": "Nasal / Sinus Relief" },
-      "antacid": { "name": "Antacid", "category": "Digestive Relief" },
-      "vitamins": { "name": "Vitamins / Supplements", "category": "Immune Support" },
-      "throat-lozenges": { "name": "Throat Lozenges", "category": "Sore Throat Relief" }
+      "dayquil": { "name": "DayQuil", "category": "Cold & Flu Relief" },
+      "nyquil": { "name": "NyQuil", "category": "Cold & Flu Relief" },
+      "tylenol-cold-flu": { "name": "Tylenol Cold & Flu", "category": "Cold & Flu Relief" },
+      "mucinex": { "name": "Mucinex", "category": "Chest Congestion" },
+      "robitussin": { "name": "Robitussin", "category": "Cough Relief" },
+      "theraflu": { "name": "Theraflu", "category": "Cold & Flu Relief" },
+      "claritin": { "name": "Claritin", "category": "Allergy Relief" }
     }
   },
   "insurance": {

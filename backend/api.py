@@ -136,7 +136,7 @@ async def scan_city(request: ScanRequest):
 
         user_message = types.Content(
             role="user",
-            parts=[types.Part(text=f"Scan {city_cfg.name}, Florida for health outbreaks. Run the full pipeline.")],
+            parts=[types.Part(text=f"Scan {city_cfg.name}, Florida for health outbreaks, specifically tracking the risks for Seasonal Flu and Common Cold. Run the full pipeline.")],
         )
 
         final_response = ""
@@ -260,5 +260,15 @@ async def api_update_user_preferences(request: UserPreferencesRequest):
         return {"status": "success"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.get("/api/user/{uid}/preferences")
+async def api_get_user_preferences(uid: str):
+    """Retrieves a user's preferences."""
+    from backend.db.firebase import get_user_preferences
+    try:
+        prefs = get_user_preferences(uid)
+        return {"status": "success", "preferences": prefs}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")

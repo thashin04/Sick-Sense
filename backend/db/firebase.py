@@ -254,3 +254,18 @@ def update_user_preferences(uid: str, preferences: dict) -> bool:
         print(f"[Firebase] Error updating preferences: {e}")
         raise ValueError("Could not save user preferences")
 
+def get_user_preferences(uid: str) -> dict:
+    """Gets a user's preferences from Firestore."""
+    db = init_firebase()
+    if not db:
+        raise RuntimeError("Firebase not initialized")
+    try:
+        user_ref = db.collection("users").document(uid)
+        doc = user_ref.get()
+        if not doc.exists:
+            return {}
+        return doc.to_dict().get("preferences", {})
+    except Exception as e:
+        print(f"[Firebase] Error getting preferences: {e}")
+        return {}
+

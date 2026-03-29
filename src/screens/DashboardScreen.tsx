@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -27,7 +28,7 @@ type Props = {
 
 export interface RiskLevel {
   name: string;
-  level: 'Low' | 'Medium' | 'High';
+  level: 'Low' | 'Medium' | 'Moderate' | 'High';
   /** Ionicons icon name */
   icon: React.ComponentProps<typeof Ionicons>['name'];
 }
@@ -94,11 +95,11 @@ function formatDate(date: Date): string {
 }
 
 function riskColor(level: RiskLevel['level']) {
-  return level === 'High' ? Colors.coral : level === 'Medium' ? Colors.sunlight : Colors.babyBlue;
+  return level === 'High' ? Colors.coral : (level === 'Medium' || level === 'Moderate') ? Colors.sunlight : Colors.babyBlue;
 }
 
 function riskBarWidth(level: RiskLevel['level']): `${number}%` {
-  return level === 'High' ? '80%' : level === 'Medium' ? '50%' : '22%';
+  return level === 'High' ? '80%' : (level === 'Medium' || level === 'Moderate') ? '50%' : '22%';
 }
 
 function otcStatusColor(status: OtcItem['status']) {
@@ -135,6 +136,88 @@ export default function DashboardScreen({ navigation }: Props) {
   const [selfReportOpen, setSelfReportOpen] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+
+  const [riskLevels, setRiskLevels] = useState<RiskLevel[]>(RISK_LEVELS);
+  const [otcItems, setOtcItems] = useState<OtcItem[]>(OTC_ITEMS);
+
+  useEffect(() => {
+    async function loadSummary() {
+      try {
+        let prefIds: string[] = [];
+        try {
+          const authStr = await AsyncStorage.getItem('@user_auth');
+          if (authStr) {
+            const auth = JSON.parse(authStr);
+            if (auth.uid) {
+              const prefRes = await fetch(`http://localhost:8000/api/user/${auth.uid}/preferences`);
+              if (prefRes.ok) {
+                const prefData = await prefRes.json();
+                if (prefData.preferences && prefData.preferences.otc_medicine) {
+                  prefIds = prefData.preferences.otc_medicine;
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to fetch user preferences from API', e);
+        }
+
+        if (prefIds.length === 0) {
+          const prefStr = await AsyncStorage.getItem('@pref_medicine');
+          prefIds = prefStr ? JSON.parse(prefStr) : [];
+        }
+
+        const ID_TO_NAME: Record<string, string> = {
+          'dayquil': 'DayQuil',
+          'nyquil': 'NyQuil',
+          'tylenol-cold-flu': 'Tylenol Cold & Flu',
+          'mucinex': 'Mucinex',
+          'robitussin': 'Robitussin',
+          'theraflu': 'Theraflu',
+          'claritin': 'Claritin',
+          // Backwards compatibility for old generic category preferences stuck in Firebase
+          'acetaminophen': 'Tylenol Cold & Flu',
+          'ibuprofen': 'Tylenol Cold & Flu', 
+          'antihistamines': 'Claritin',
+          'cough-syrup': 'Robitussin',
+          'decongestant': 'DayQuil',
+          'aspirin': 'DayQuil' // Map missing generic options
+        };
+        const preferredNames = prefIds.map(id => ID_TO_NAME[id]).filter(Boolean);
+
+        const res = await fetch('http://localhost:8000/api/city/Tampa/summary');
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        if (data.local_risk_levels) {
+          const newRisks: RiskLevel[] = [];
+          if (data.local_risk_levels.seasonal_flu) {
+            newRisks.push({ name: 'Seasonal Flu', level: data.local_risk_levels.seasonal_flu, icon: 'nuclear-outline' });
+          }
+          if (data.local_risk_levels.common_cold) {
+            newRisks.push({ name: 'Common Cold', level: data.local_risk_levels.common_cold, icon: 'thermometer-outline' });
+          }
+          // Strictly only showing Seasonal Flu and Common Cold as requested
+          if (newRisks.length > 0) {
+            setRiskLevels(newRisks);
+          }
+        }
+
+        if (data.otc_stock && data.otc_stock.length > 0) {
+          const freshOtc = data.otc_stock
+            .filter((item: any) => preferredNames.length === 0 || preferredNames.includes(item.name))
+            .map((item: any) => ({
+              name: item.name,
+              status: item.status,
+            }));
+          setOtcItems(freshOtc);
+        }
+      } catch (err) {
+        console.error('Failed to load summary', err);
+      }
+    }
+    loadSummary();
+  }, []);
 
   return (
     <View style={styles.root}>
@@ -224,11 +307,11 @@ export default function DashboardScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
         <View style={styles.riskRow}>
-          {RISK_LEVELS.map((risk) => (
+          {riskLevels.map((risk) => (
             <View key={risk.name} style={styles.riskCard}>
               <Ionicons name={risk.icon} size={22} color={Colors.indigo} />
               <Text style={styles.riskName}>{risk.name}</Text>
-              <Text style={[styles.riskLevel, { color: riskColor(risk.level) }]}>
+              <Text style={[styles.riskLevel, { color: (risk.level === 'Medium' || risk.level === 'Moderate') ? Colors.black : riskColor(risk.level) }]}>
                 {risk.level}
               </Text>
               <View style={styles.riskBarTrack}>
@@ -251,10 +334,10 @@ export default function DashboardScreen({ navigation }: Props) {
           </Text>
         </View>
         <View style={[styles.card, { marginBottom: 32 }]}>
-          {OTC_ITEMS.map((item, i) => (
+          {otcItems.map((item, i) => (
             <View
               key={item.name}
-              style={[styles.otcRow, i < OTC_ITEMS.length - 1 && styles.otcRowBorder]}
+              style={[styles.otcRow, i < otcItems.length - 1 && styles.otcRowBorder]}
             >
               <View style={[styles.otcDot, { backgroundColor: otcStatusColor(item.status) }]} />
               <Text style={styles.otcName}>{item.name}</Text>
