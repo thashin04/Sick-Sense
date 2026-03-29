@@ -62,11 +62,19 @@ export default function AreaDetailModal({ visible, onClose, area }: Props) {
   const theme = useAppTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={[styles.sheet, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
+      <View style={styles.modalContainer}>
+        {/* Backdrop - press to close */}
+        <TouchableOpacity 
+          style={styles.backdrop} 
+          activeOpacity={1} 
+          onPress={onClose} 
+        />
+        
+        {/* Sheet - non-touch-absorbing container */}
+        <View style={[styles.sheet, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
           {/* Close */}
           <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={12}>
-            <Ionicons name="close" size={20} color={theme.muted} />
+            <Ionicons name="close" size={24} color={theme.muted} />
           </TouchableOpacity>
 
           {/* Title row */}
@@ -84,15 +92,15 @@ export default function AreaDetailModal({ visible, onClose, area }: Props) {
 
           {/* Stats row */}
           <View style={styles.statsRow}>
-            <View style={[styles.statCard, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : '#FEF2F2' }]}>
+            <View style={[styles.statCard, { backgroundColor: theme.surfaceSecondary }]}>
               <Text style={[styles.statLabel, { color: theme.sectionLabel }]}>{t('area_detail_modal.risk_index')}</Text>
               <Text style={[styles.statValue, { color: riskColor(area.riskLevel) }]}>
                 {area.riskLevel} {t('area_detail_modal.risk_suffix')}
               </Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : Colors.cloudBlue }]}>
+            <View style={[styles.statCard, { backgroundColor: theme.surfaceTertiary }]}>
               <Text style={[styles.statLabel, { color: theme.sectionLabel }]}>{t('area_detail_modal.trans_rate')}</Text>
-              <Text style={[styles.statValue, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]}>
+              <Text style={[styles.statValue, { color: theme.heading }]}>
                 {area.transmissionRate.toFixed(2)}
               </Text>
             </View>
@@ -101,52 +109,54 @@ export default function AreaDetailModal({ visible, onClose, area }: Props) {
           {/* Active alerts */}
           <View style={styles.alertsHeader}>
             <Text style={[styles.alertsTitle, { color: theme.sectionLabel }]}>{t('area_detail_modal.active_alerts')}</Text>
-            <View style={styles.alertDot} />
+            <View style={[styles.alertDot, { backgroundColor: theme.error }]} />
           </View>
 
-          <ScrollView style={styles.alertsList} showsVerticalScrollIndicator={false}>
-            {area.alerts.map((alert, i) => (
-              <View key={i} style={[styles.alertCard, { borderColor: theme.border }]}>
-                <View style={[styles.alertIconWrap, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : alertIconBg(alert.severity) }]}>
-                  <Ionicons name="alert-circle-outline" size={20} color={alertIconColor(alert.severity)} />
+          <View style={styles.listWrap}>
+            <ScrollView style={styles.alertsList} showsVerticalScrollIndicator={false}>
+              {area.alerts.map((alert, i) => (
+                <View key={i} style={[styles.alertCard, { borderColor: theme.border, backgroundColor: theme.surfaceSecondary }]}>
+                  <View style={[styles.alertIconWrap, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : alertIconBg(alert.severity) }]}>
+                    <Ionicons name="alert-circle-outline" size={20} color={alertIconColor(alert.severity)} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.alertName, { color: theme.body }]}>{alert.name}</Text>
+                    <Text style={[styles.alertDesc, { color: theme.muted }]}>{alert.description}</Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.alertName, { color: theme.body }]}>{alert.name}</Text>
-                  <Text style={[styles.alertDesc, { color: theme.muted }]}>{alert.description}</Text>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
+              ))}
+            </ScrollView>
+          </View>
 
           {/* CTA */}
           <TouchableOpacity
-            style={styles.ctaBtn}
+            style={[styles.ctaBtn, { backgroundColor: theme.primary }]}
             activeOpacity={0.85}
-            onPress={() => {
-              onClose();
-              // TODO: navigate to Advice screen
-            }}
+            onPress={onClose}
           >
-            <Text style={styles.ctaTxt}>{t('area_detail_modal.view_advice')}</Text>
+            <Text style={[styles.ctaTxt, { color: theme.primaryText }]}>{t('area_detail_modal.view_advice')}</Text>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
   sheet: {
-    backgroundColor: Colors.white,
     borderRadius: 24,
     padding: 24,
     maxHeight: '85%',
+    elevation: 5,
   },
   closeBtn: {
     alignSelf: 'flex-end',
@@ -158,27 +168,25 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   areaName: {
-    fontFamily: FontFamily.extraBold,
+    fontFamily: FontFamily.bold,
     fontSize: 26,
-    color: Colors.indigo,
     marginBottom: 2,
   },
   areaCity: {
     fontFamily: FontFamily.regular,
-    fontSize: FontSize.md,
-    color: '#6B7280',
+    fontSize: 16,
   },
   scoreBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
+    width: 60,
+    height: 60,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
   },
   scoreTxt: {
-    fontFamily: FontFamily.extraBold,
-    fontSize: FontSize.xl,
+    fontFamily: FontFamily.bold,
+    fontSize: 22,
     color: Colors.white,
   },
   statsRow: {
@@ -188,84 +196,81 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 16,
+    padding: 16,
   },
   statLabel: {
     fontFamily: FontFamily.semiBold,
-    fontSize: FontSize.xs,
-    color: '#9CA3AF',
+    fontSize: 11,
     letterSpacing: 0.8,
     marginBottom: 6,
+    textTransform: 'uppercase',
   },
   statValue: {
     fontFamily: FontFamily.bold,
-    fontSize: FontSize.xl,
+    fontSize: 20,
   },
   alertsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
+    paddingRight: 4,
   },
   alertsTitle: {
-    fontFamily: FontFamily.semiBold,
-    fontSize: FontSize.xs,
-    color: '#9CA3AF',
-    letterSpacing: 0.8,
+    fontFamily: FontFamily.bold,
+    fontSize: 11,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   alertDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.coral,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  listWrap: {
+    maxHeight: 200,
+    marginBottom: 20,
   },
   alertsList: {
-    maxHeight: 160,
-    marginBottom: 18,
+    width: '100%',
   },
   alertCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    borderWidth: 1,
-    borderColor: Colors.lightMidBlue,
-    borderRadius: 14,
     padding: 14,
+    borderRadius: 16,
     marginBottom: 10,
+    borderWidth: 1,
   },
   alertIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 12,
   },
   alertName: {
-    fontFamily: FontFamily.semiBold,
-    fontSize: FontSize.md,
-    color: Colors.black,
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
     marginBottom: 2,
   },
   alertDesc: {
     fontFamily: FontFamily.regular,
-    fontSize: FontSize.xs,
-    color: '#6B7280',
+    fontSize: 13,
+    lineHeight: 18,
   },
   ctaBtn: {
-    backgroundColor: Colors.indigo,
-    paddingVertical: 17,
-    borderRadius: 50,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
-    shadowColor: Colors.indigo,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
   },
   ctaTxt: {
-    fontFamily: FontFamily.semiBold,
-    fontSize: FontSize.lg,
-    color: Colors.white,
+    fontFamily: FontFamily.bold,
+    fontSize: 17,
   },
 });

@@ -138,9 +138,18 @@ export default function MapScreen({ navigation }: Props) {
         if (res.ok) {
           const data = await res.json();
           let riskLvl = 'Low';
-          if (data.forecast) {
-            const match = data.forecast.match(/risk level is (\w+)/i);
-            if (match) riskLvl = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+          
+          if (data.local_risk_levels) {
+            const getL = (obj: any) => (typeof obj === 'string' ? obj : (obj?.level || 'Low'));
+            const fluL = getL(data.local_risk_levels.seasonal_flu);
+            const coldL = getL(data.local_risk_levels.common_cold);
+            const others = data.local_risk_levels.others || [];
+            
+            if (fluL === 'High' || coldL === 'High' || others.some((o: any) => getL(o) === 'High')) {
+              riskLvl = 'High';
+            } else if (fluL === 'Moderate' || coldL === 'Moderate' || others.some((o: any) => getL(o) === 'Moderate')) {
+              riskLvl = 'Medium';
+            }
           }
           const alerts: any[] = [];
           if (data.local_risk_levels) {
@@ -208,9 +217,18 @@ export default function MapScreen({ navigation }: Props) {
         if (res.ok) {
           const data = await res.json();
           let riskLvl = 'Low';
-          if (data.forecast) {
-            const match = data.forecast.match(/risk level is (\w+)/i);
-            if (match) riskLvl = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+          
+          if (data.local_risk_levels) {
+            const getL = (obj: any) => (typeof obj === 'string' ? obj : (obj?.level || 'Low'));
+            const fluL = getL(data.local_risk_levels.seasonal_flu);
+            const coldL = getL(data.local_risk_levels.common_cold);
+            const others = data.local_risk_levels.others || [];
+            
+            if (fluL === 'High' || coldL === 'High' || others.some((o: any) => getL(o) === 'High')) {
+              riskLvl = 'High';
+            } else if (fluL === 'Moderate' || coldL === 'Moderate' || others.some((o: any) => getL(o) === 'Moderate')) {
+              riskLvl = 'Medium';
+            }
           }
           const alerts: any[] = [];
           if (data.local_risk_levels) {

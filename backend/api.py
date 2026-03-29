@@ -12,7 +12,7 @@ from google.genai import types
 from backend.config.cities import FLORIDA_CITIES, get_city
 from backend.orchestrator import create_orchestrator
 from backend.db.firebase import save_self_report, get_city_summary
-from backend.api_insurance import api_router as insurance_router
+from backend.api_insurance import router as insurance_router
 
 app = FastAPI(
     title="SickSense API",
@@ -28,7 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(insurance_router, prefix="/api")
+app.include_router(insurance_router)
 
 class ScanRequest(BaseModel):
     city: str
@@ -122,6 +122,29 @@ async def submit_self_report(request: SelfReportRequest):
         raise HTTPException(status_code=500, detail=f"Submission failed: {str(e)}")
 
 
+@app.post("/api/city/{city}/refresh-report")
+async def refresh_city_report(city: str):
+    """Manually trigger a full refresh (Scan + TTS) for a city's health report."""
+    import os
+    from backend.jobs.daily_report import process_city
+    from google import genai
+    from backend.config.cities import get_city
+    from backend.db.firebase import init_firebase
+    
+    try:
+        city_cfg = get_city(city)
+        db = init_firebase()
+        client = genai.Client(api_key=os.getenv("GEMINI_API_KEY", os.getenv("GOOGLE_API_KEY")))
+        
+        # This function handles the Scout/Analyst/Advisor scan AND the TTS script generation
+        # We pass a fake city_key since it's used for the document ID (lowercase)
+        # We set skip_scan=True to only refresh the audio script from existing summary data
+        await process_city(city_cfg.name.lower(), city_cfg, client, db, skip_scan=True)
+        
+        return {"status": "success", "message": f"Daily report script refreshed for {city_cfg.name}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Refresh failed: {str(e)}")
+
 @app.post("/api/scan", response_model=ScanResponse)
 async def scan_city(request: ScanRequest):
     """Trigger a health outbreak scan for a specific city.
@@ -212,27 +235,31 @@ async def get_heatmap_data():
     features = []
     for city_key, city_cfg in FLORIDA_CITIES.items():
         summary = get_city_summary(city_cfg.name)
-        weight = 0.1 # Default very low risk
+        weight = 0.55 # Default base weight for map visibility
         
-        if summary and "virus_risks" in summary:
-            # Map risk levels to weights
-            max_risk = "Low"
-            for risk in summary["virus_risks"]:
-                level = risk.get("level", "Low")
-                if level == "High":
-                    max_risk = "High"
-                elif level == "Moderate" and max_risk != "High":
-                    max_risk = "Moderate"
+        if summary and "local_risk_levels" in summary:
+            levels = summary["local_risk_levels"]
+            max_lvl = "Low"
             
-            if max_risk == "High": weight = 1.0
-            elif max_risk == "Moderate": weight = 0.9
-            else: weight = 0.75
+            # Helper to check level
+            def get_lvl(obj):
+                if isinstance(obj, str): return obj
+                if isinstance(obj, dict): return obj.get("level", "Low")
+                return "Low"
+
+            # Check Flu/Cold
+            for k in ["seasonal_flu", "common_cold"]:
+                if get_lvl(levels.get(k)) == "High": max_lvl = "High"
+                elif get_lvl(levels.get(k)) == "Moderate" and max_lvl != "High": max_lvl = "Moderate"
             
-        # Simulation: Force Tampa, Miami and Jacksonville to stay High-Risk for "Nuclear Glow" verification
-        if city_cfg.name in ["Tampa", "Miami", "Jacksonville"]:
-            weight = 1.0
-        elif weight < 0.55: # Ensure a vibrant 0.55 floor for no-data/unknown areas
-            weight = 0.55
+            # Check others
+            if "others" in levels:
+                for other in levels["others"]:
+                    if get_lvl(other) == "High": max_lvl = "High"
+            
+            if max_lvl == "High": weight = 1.0
+            elif max_lvl == "Moderate": weight = 0.85
+            else: weight = 0.65 # Visible baseline for active cities
             
         features.append({
             "type": "Feature",

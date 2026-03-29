@@ -111,6 +111,8 @@ def validate_assessment(assessment_text: str) -> dict:
             "the allergy vs. infection distinction explicitly addressed?",
             "Is the threat_score inflated by hallucinated data not present in "
             "the original scout report?",
+            "If ANY identified_condition or anomaly is rated 'High' or 'Critical', "
+            "is the overall threat_level also set to that maximum value (rather than an average)?",
         ],
         "action": (
             "Review each item above against your draft. If ANY check fails, "

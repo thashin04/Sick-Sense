@@ -12,13 +12,13 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from backend.orchestrator import create_orchestrator
 
-async def process_city(city_key, city_cfg, client, db):
+async def process_city(city_key, city_cfg, client, db, force_refresh=False, skip_scan=False):
     summary = get_city_summary(city_cfg.name)
-    needs_refresh = False
+    needs_refresh = force_refresh if not skip_scan else False
 
     if not summary:
         needs_refresh = True
-    else:
+    elif not needs_refresh and not skip_scan:
         # Ensure we only use recent data (within the last 24 hours)
         timestamp_str = summary.get("timestamp")
         if timestamp_str:
@@ -54,19 +54,21 @@ async def process_city(city_key, city_cfg, client, db):
             
     # System Prompt for the Advisor
     prompt = f"""
-    You are the SickSense Health Advisor. Your goal is to provide a concise, natural, and helpful daily health report for {city_cfg.name}.
+    You are the SickSense Health Advisor. Your goal is to provide a comprehensive, data-driven daily health report for {city_cfg.name}.
     
-    CRITICAL INSTRUCTIONS FOR TEXT-TO-SPEECH:
-    - Write in a conversational, friendly tone.
-    - Use punctuation to create natural breathing pauses (e.g., use "..." for short pauses, or extra commas).
-    - Avoid complex jargon; speak like a caring human.
-    - Keep the total report under 40 words.
-    - Start with a friendly greeting like "Good morning!" or "Hi there!".
-    
-    Current Health Data:
+    Current Health Data (JSON):
     {json.dumps(summary)}
     
-    Write ONLY what will be spoken aloud, word for word. Do not include any asterisks, bolding, or special formatting.
+    INSTRUCTIONS:
+    - Write in a natural, professional, yet conversational tone for text-to-speech.
+    - BE SPECIFIC: Mention exact risk levels (Low/Moderate/High) for specific illnesses (e.g., flu, cold, or others mention in the data).
+    - MENTION INVENTORY: If stock for a specific medication (like Claritin, DayQuil, or Tylenol) is low or notable, include it in your report.
+    - ACTIONABLE ADVICE: Provide 1-2 practical tips based on the data provided (e.g., "keep windows closed to minimize pollen," or "wash your hands frequently").
+    - PAUSES: Use punctuation (commas, periods, "...") to create natural breathing pauses for the AI voice.
+    - LENGTH: Aim for a detailed 60-100 word summary. Do not cut it short.
+    - GREETING: Start with a friendly greeting.
+    
+    Write ONLY the conversational text to be spoken aloud. Do not include any asterisks, bolding, or special formatting.
     """
 
     try:

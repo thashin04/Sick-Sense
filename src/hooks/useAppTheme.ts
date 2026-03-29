@@ -47,6 +47,12 @@ export function useAppTheme() {
     primary:            isDark ? Colors.sunlight      : Colors.indigo,
     primaryText:        isDark ? Colors.indigo        : Colors.white,
 
+    // ── Status Colors ────────────────────────────────────────
+    error:              Colors.coral,
+    success:            '#22C55E',
+    surfaceSuccess:     isDark ? 'rgba(34,197,94,0.12)' : '#F0FFF4',
+    surfaceTertiary:    isDark ? 'rgba(255,255,255,0.08)' : Colors.cloudBlue,
+
     // ── Status bar ───────────────────────────────────────────
     statusBar:          (isDark ? 'light' : 'dark') as 'light' | 'dark',
   } as const;
