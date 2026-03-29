@@ -104,6 +104,7 @@ function typeBg(type: Provider['type']): string {
 // ─── Props & Component ────────────────────────────────────────────────────────
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   visible: boolean;
@@ -113,20 +114,19 @@ interface Props {
 }
 
 export default function InNetworkModal({ visible, onClose, insurancePlan = 'Your Plan' }: Props) {
+  const { t } = useTranslation();
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
           <View style={styles.handle} />
 
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>In-Network Care</Text>
+              <Text style={styles.title}>{t('in_network_modal.title')}</Text>
               <Text style={styles.subtitle}>
-                Providers accepting{' '}
-                <Text style={styles.planName}>{insurancePlan}</Text>
-                {' '}near you
+                {t('in_network_modal.subtitle', { plan: insurancePlan })}
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
@@ -163,7 +163,7 @@ export default function InNetworkModal({ visible, onClose, insurancePlan = 'Your
                   <View style={[styles.statusPill, { backgroundColor: p.acceptingPatients ? '#F0FFF4' : '#FEF2F2' }]}>
                     <View style={[styles.statusDot, { backgroundColor: p.acceptingPatients ? '#22C55E' : Colors.coral }]} />
                     <Text style={[styles.statusTxt, { color: p.acceptingPatients ? '#166534' : '#991B1B' }]}>
-                      {p.acceptingPatients ? 'Accepting Patients' : 'Not Accepting'}
+                      {p.acceptingPatients ? t('in_network_modal.accepting') : t('in_network_modal.not_accepting')}
                     </Text>
                   </View>
 
@@ -173,15 +173,15 @@ export default function InNetworkModal({ visible, onClose, insurancePlan = 'Your
                     onPress={() => Linking.openURL(`tel:${p.phone}`)}
                   >
                     <Ionicons name="call-outline" size={14} color={Colors.indigo} />
-                    <Text style={styles.callTxt}>Call</Text>
+                    <Text style={styles.callTxt}>{t('common.call')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ))}
             <View style={{ height: 16 }} />
           </ScrollView>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }

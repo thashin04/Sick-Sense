@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Colors, FontFamily, FontSize } from '../../theme';
 
 export interface AreaAlert {
@@ -56,10 +57,11 @@ function alertIconBg(severity: AreaAlert['severity']) {
 }
 
 export default function AreaDetailModal({ visible, onClose, area }: Props) {
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
           {/* Close */}
           <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={12}>
             <Ionicons name="close" size={20} color="#9CA3AF" />
@@ -81,13 +83,13 @@ export default function AreaDetailModal({ visible, onClose, area }: Props) {
           {/* Stats row */}
           <View style={styles.statsRow}>
             <View style={[styles.statCard, { backgroundColor: '#FEF2F2' }]}>
-              <Text style={styles.statLabel}>RISK INDEX</Text>
+              <Text style={styles.statLabel}>{t('area_detail_modal.risk_index')}</Text>
               <Text style={[styles.statValue, { color: riskColor(area.riskLevel) }]}>
-                {area.riskLevel} Risk
+                {area.riskLevel} {t('area_detail_modal.risk_suffix')}
               </Text>
             </View>
             <View style={[styles.statCard, { backgroundColor: Colors.cloudBlue }]}>
-              <Text style={styles.statLabel}>TRANS. RATE</Text>
+              <Text style={styles.statLabel}>{t('area_detail_modal.trans_rate')}</Text>
               <Text style={[styles.statValue, { color: Colors.indigo }]}>
                 {area.transmissionRate.toFixed(2)}
               </Text>
@@ -96,7 +98,7 @@ export default function AreaDetailModal({ visible, onClose, area }: Props) {
 
           {/* Active alerts */}
           <View style={styles.alertsHeader}>
-            <Text style={styles.alertsTitle}>ACTIVE ALERTS</Text>
+            <Text style={styles.alertsTitle}>{t('area_detail_modal.active_alerts')}</Text>
             <View style={styles.alertDot} />
           </View>
 
@@ -123,10 +125,10 @@ export default function AreaDetailModal({ visible, onClose, area }: Props) {
               // TODO: navigate to Advice screen
             }}
           >
-            <Text style={styles.ctaTxt}>View Protective Advice</Text>
+            <Text style={styles.ctaTxt}>{t('area_detail_modal.view_advice')}</Text>
           </TouchableOpacity>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }
