@@ -316,7 +316,7 @@ export default function DashboardScreen({ navigation }: Props) {
       }
     }
     loadSummary();
-  }, []);
+  }, [selectedCity]);
 
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>
