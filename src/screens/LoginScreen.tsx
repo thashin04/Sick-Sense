@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FontAwesome } from '@expo/vector-icons';
 import CloudHeader from '../components/CloudHeader';
@@ -27,83 +28,77 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <StatusBar style="light" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <CloudHeader height={155} />
-
         <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Title */}
-          <Text style={styles.title}>Log In</Text>
-          <Text style={styles.subtitle}>Welcome to SickSense!</Text>
+          {/* Header scrolls with content */}
+          <CloudHeader />
 
-          {/* Card */}
-          <View style={styles.card}>
+          <View style={styles.body}>
+            <Text style={styles.title}>Log In</Text>
+            <Text style={styles.subtitle}>Welcome to SickSense!</Text>
 
-            {/* Social buttons */}
-            <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
-              <GoogleIcon size={20} />
-              <Text style={styles.socialTxt}>Login with Google</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
-              <FontAwesome name="apple" size={22} color="#000" />
-              <Text style={styles.socialTxt}>Login with Apple</Text>
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerTxt}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Email */}
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholderTextColor="#B0B8C8"
-            />
-
-            {/* Password */}
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              placeholderTextColor="#B0B8C8"
-            />
-
-            <TouchableOpacity style={styles.forgotWrap}>
-              <Text style={styles.forgotTxt}>Forgot Password?</Text>
-            </TouchableOpacity>
-
-            {/* Login button */}
-            <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85}>
-              <Text style={styles.primaryTxt}>Login</Text>
-            </TouchableOpacity>
-
-            {/* Sign up link */}
-            <View style={styles.footerRow}>
-              <Text style={styles.footerTxt}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-                <Text style={styles.linkTxt}>Sign up</Text>
+            <View style={styles.card}>
+              <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
+                <GoogleIcon size={20} />
+                <Text style={styles.socialTxt}>Login with Google</Text>
               </TouchableOpacity>
-            </View>
 
+              <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
+                <FontAwesome name="apple" size={22} color="#000" />
+                <Text style={styles.socialTxt}>Login with Apple</Text>
+              </TouchableOpacity>
+
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerTxt}>or</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholderTextColor="#B0B8C8"
+              />
+
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                placeholderTextColor="#B0B8C8"
+              />
+
+              <TouchableOpacity style={styles.forgotWrap}>
+                <Text style={styles.forgotTxt}>Forgot Password?</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85}>
+                <Text style={styles.primaryTxt}>Login</Text>
+              </TouchableOpacity>
+
+              <View style={styles.footerRow}>
+                <Text style={styles.footerTxt}>Don't have an account? </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                  <Text style={styles.linkTxt}>Sign up</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -112,17 +107,10 @@ export default function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.cloudBlue,
-  },
-  flex: {
-    flex: 1,
-  },
-  scroll: {
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-  },
+  safe: { flex: 1, backgroundColor: Colors.cloudBlue },
+  flex: { flex: 1 },
+  scroll: { paddingBottom: 32 },
+  body: { paddingHorizontal: 20, paddingTop: 20 },
   title: {
     fontFamily: FontFamily.extraBold,
     fontSize: 36,
@@ -169,11 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 18,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E7EB',
-  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#E5E7EB' },
   dividerTxt: {
     fontFamily: FontFamily.regular,
     fontSize: FontSize.sm,
@@ -198,11 +182,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFBFF',
     marginBottom: 16,
   },
-  forgotWrap: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-    marginTop: -8,
-  },
+  forgotWrap: { alignSelf: 'flex-end', marginBottom: 24, marginTop: -8 },
   forgotTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.sm,
@@ -226,11 +206,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     color: '#FFFFFF',
   },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  footerRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   footerTxt: {
     fontFamily: FontFamily.regular,
     fontSize: FontSize.md,

@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import CloudHeader from './CloudHeader';
 import { Colors, FontFamily, FontSize } from '../theme';
@@ -37,9 +38,12 @@ export default function IntakeLayout({
 }: Props) {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <CloudHeader height={130} />
+      <StatusBar style="light" />
 
-      <View style={styles.container}>
+      {/* ── Sticky header ── */}
+      <CloudHeader />
+
+      <View style={styles.header}>
         {onBack && (
           <TouchableOpacity style={styles.back} onPress={onBack} hitSlop={12}>
             <Ionicons name="chevron-back" size={18} color={Colors.darkBlue} />
@@ -50,7 +54,6 @@ export default function IntakeLayout({
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
 
-        {/* Search bar */}
         <View style={styles.searchWrap}>
           <Ionicons name="search" size={16} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
@@ -63,20 +66,19 @@ export default function IntakeLayout({
             autoCapitalize="none"
           />
         </View>
-
-        {/* Scrollable list */}
-        <ScrollView
-          style={styles.list}
-          showsVerticalScrollIndicator
-          indicatorStyle="black"
-          keyboardShouldPersistTaps="handled"
-        >
-          {children}
-          <View style={{ height: 8 }} />
-        </ScrollView>
       </View>
 
-      {/* Sticky bottom button */}
+      {/* ── Scrollable list ── */}
+      <ScrollView
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {children}
+      </ScrollView>
+
+      {/* ── Fixed button ── */}
       <View style={styles.btnWrap}>
         <TouchableOpacity style={styles.btn} onPress={onButton} activeOpacity={0.85}>
           <Text style={styles.btnTxt}>{buttonLabel}</Text>
@@ -87,14 +89,10 @@ export default function IntakeLayout({
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.cloudBlue,
-  },
-  container: {
-    flex: 1,
+  safe: { flex: 1, backgroundColor: Colors.cloudBlue },
+  header: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 20,
   },
   back: {
     flexDirection: 'row',
@@ -132,17 +130,17 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  searchIcon: {
-    marginRight: 8,
-  },
+  searchIcon: { marginRight: 8 },
   searchInput: {
     flex: 1,
     fontFamily: FontFamily.regular,
     fontSize: FontSize.md,
     color: '#111827',
   },
-  list: {
-    flex: 1,
+  list: { flex: 1 },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
   },
   btnWrap: {
     paddingHorizontal: 20,

@@ -4,17 +4,19 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import CloudHeader from './CloudHeader';
 import { Colors, FontFamily, FontSize } from '../theme';
 
 interface Props {
   title: string;
   subtitle: string;
-  /** Content rendered inside the dark navy card (e.g. an Image or mockup) */
   cardContent: ReactNode;
-  currentStep: number; // 1-indexed
+  currentStep: number;
   totalSteps: number;
   onBack?: () => void;
   onNext: () => void;
@@ -31,37 +33,45 @@ export default function TutorialLayout({
   onNext,
   onSkip,
 }: Props) {
+  const { height } = useWindowDimensions();
+  const cardHeight = height * 0.42;
+
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <CloudHeader height={130} />
+      <StatusBar style="light" />
 
-      <View style={styles.container}>
-        {/* Skip */}
-        {onSkip && (
-          <TouchableOpacity style={styles.skipWrap} onPress={onSkip} hitSlop={12}>
-            <Text style={styles.skipTxt}>Skip  ›</Text>
-          </TouchableOpacity>
-        )}
+      {/* Header + content scroll together */}
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        <CloudHeader />
 
-        {/* Heading */}
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <View style={styles.body}>
+          {onSkip && (
+            <TouchableOpacity style={styles.skipWrap} onPress={onSkip} hitSlop={12}>
+              <Text style={styles.skipTxt}>Skip  ›</Text>
+            </TouchableOpacity>
+          )}
 
-        {/* Feature card */}
-        <View style={styles.card}>{cardContent}</View>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>
 
-        {/* Progress indicators */}
-        <View style={styles.dots}>
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <View
-              key={i}
-              style={[styles.dot, i === currentStep - 1 ? styles.dotActive : styles.dotInactive]}
-            />
-          ))}
+          <View style={[styles.card, { height: cardHeight }]}>{cardContent}</View>
+
+          <View style={styles.dots}>
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <View
+                key={i}
+                style={[styles.dot, i === currentStep - 1 ? styles.dotActive : styles.dotInactive]}
+              />
+            ))}
+          </View>
         </View>
-      </View>
+      </ScrollView>
 
-      {/* Back / Next buttons */}
+      {/* Back / Next stay fixed at bottom */}
       <View style={styles.btnRow}>
         <TouchableOpacity
           style={styles.btnBack}
@@ -81,29 +91,18 @@ export default function TutorialLayout({
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.cloudBlue,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 6,
-  },
+  safe: { flex: 1, backgroundColor: Colors.cloudBlue },
+  flex: { flex: 1 },
+  scroll: { paddingBottom: 8 },
+  body: { paddingHorizontal: 20, paddingTop: 20 },
 
-  /* Skip */
-  skipWrap: {
-    alignSelf: 'flex-end',
-    paddingVertical: 4,
-    marginBottom: 8,
-  },
+  skipWrap: { alignSelf: 'flex-end', paddingVertical: 4, marginBottom: 8 },
   skipTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.md,
     color: Colors.indigo,
   },
 
-  /* Heading */
   title: {
     fontFamily: FontFamily.extraBold,
     fontSize: FontSize.xxxl,
@@ -119,9 +118,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  /* Feature card */
   card: {
-    flex: 1,
     backgroundColor: Colors.indigo,
     borderRadius: 20,
     overflow: 'hidden',
@@ -130,26 +127,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  /* Progress dots */
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
     marginBottom: 8,
   },
-  dot: {
-    height: 6,
-    borderRadius: 3,
-    width: 60,
-  },
-  dotActive: {
-    backgroundColor: Colors.indigo,
-  },
-  dotInactive: {
-    backgroundColor: Colors.lightMidBlue,
-  },
+  dot: { height: 6, borderRadius: 3, width: 60 },
+  dotActive: { backgroundColor: Colors.indigo },
+  dotInactive: { backgroundColor: Colors.lightMidBlue },
 
-  /* Buttons */
   btnRow: {
     flexDirection: 'row',
     gap: 12,
