@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Colors, FontFamily, FontSize } from '../../theme';
 
 interface Props {
@@ -18,17 +19,18 @@ interface Props {
 }
 
 export default function TranscriptModal({ visible, onClose, transcript, duration }: Props) {
+  const { t } = useTranslation();
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
           {/* Handle */}
           <View style={styles.handle} />
 
           <View style={styles.header}>
             <View>
-              <Text style={styles.title}>Daily Health Report</Text>
-              <Text style={styles.meta}>Transcript  ·  {duration}</Text>
+              <Text style={styles.title}>{t('transcript_modal.title')}</Text>
+              <Text style={styles.meta}>{t('transcript_modal.meta', { duration })}</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
               <Ionicons name="close" size={22} color="#6B7280" />
@@ -38,8 +40,8 @@ export default function TranscriptModal({ visible, onClose, transcript, duration
           <ScrollView showsVerticalScrollIndicator={false} style={styles.body}>
             <Text style={styles.transcriptText}>{transcript}</Text>
           </ScrollView>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }

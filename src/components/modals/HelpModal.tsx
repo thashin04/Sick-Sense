@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Colors, FontFamily, FontSize } from '../../theme';
 
 interface Props {
@@ -14,59 +15,33 @@ interface Props {
   onClose: () => void;
 }
 
-const SECTIONS = [
-  {
-    icon: 'home-outline' as const,
-    title: 'Dashboard',
-    body: 'Your home screen shows a personalized health overview for your current location — including a daily audio report, local disease risk levels, and nearby OTC medication stock.',
-  },
-  {
-    icon: 'volume-high-outline' as const,
-    title: 'Daily Health Report',
-    body: 'Each morning, SickSense generates a short audio briefing summarizing outbreak activity, risk levels, and health tips in your area. Tap the play button to listen, or "Show Transcript" to read it.',
-  },
-  {
-    icon: 'map-outline' as const,
-    title: 'Local Risk Levels',
-    body: 'See real-time risk ratings for illnesses like Seasonal Flu, Common Cold, and more. Ratings are updated using pharmacy stock data, ER wait times, and other local signals — not just official reports.',
-  },
-  {
-    icon: 'bag-outline' as const,
-    title: 'Local OTC Stock',
-    body: 'Check whether key medications (Ibuprofen, Antigen Tests, etc.) are available at pharmacies near you. Supply shortages often predict outbreaks before clinical data does.',
-  },
-  {
-    icon: 'warning-outline' as const,
-    title: 'Self Reporting',
-    body: 'If you or someone near you is sick or you notice empty shelves, you can submit an anonymous report. Your data helps SickSense detect outbreaks earlier for everyone.',
-  },
-  {
-    icon: 'trending-up-outline' as const,
-    title: 'Map View',
-    body: 'Switch to the Map tab to see a geographic view of outbreak activity across Florida. High-risk areas are highlighted to help you plan ahead.',
-  },
-  {
-    icon: 'shield-checkmark-outline' as const,
-    title: 'Your Privacy',
-    body: 'SickSense never shares your personal health data. All self-reports are anonymized. Location data is only used to show you local information — it is never stored or sold.',
-  },
-];
-
 export default function HelpModal({ visible, onClose }: Props) {
+  const { t } = useTranslation();
+
+  const SECTIONS = [
+    { icon: 'home-outline' as const, title: t('help_modal.dashboard_title'), body: t('help_modal.dashboard_body') },
+    { icon: 'volume-high-outline' as const, title: t('help_modal.audio_title'), body: t('help_modal.audio_body') },
+    { icon: 'map-outline' as const, title: t('help_modal.risk_title'), body: t('help_modal.risk_body') },
+    { icon: 'bag-outline' as const, title: t('help_modal.otc_title'), body: t('help_modal.otc_body') },
+    { icon: 'warning-outline' as const, title: t('help_modal.self_report_title'), body: t('help_modal.self_report_body') },
+    { icon: 'trending-up-outline' as const, title: t('help_modal.map_title'), body: t('help_modal.map_body') },
+    { icon: 'shield-checkmark-outline' as const, title: t('help_modal.privacy_title'), body: t('help_modal.privacy_body') },
+  ];
+
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
           <View style={styles.handle} />
 
           <View style={styles.header}>
-            <Text style={styles.title}>How SickSense Works</Text>
+            <Text style={styles.title}>{t('help_modal.title')}</Text>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
               <Ionicons name="close" size={22} color="#6B7280" />
             </TouchableOpacity>
           </View>
           <Text style={styles.headerSub}>
-            Everything you need to know about your health dashboard.
+            {t('help_modal.subtitle')}
           </Text>
 
           <ScrollView showsVerticalScrollIndicator={false} style={styles.body}>
@@ -83,8 +58,8 @@ export default function HelpModal({ visible, onClose }: Props) {
             ))}
             <View style={{ height: 32 }} />
           </ScrollView>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }

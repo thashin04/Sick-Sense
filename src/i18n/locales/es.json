@@ -2,7 +2,135 @@
   "common": {
     "back": "Atrás",
     "skip_for_now": "Omitir por ahora",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "current_location": "Ubicación actual",
+    "change": "Cambiar",
+    "view": "Ver",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "submit": "Enviar",
+    "call": "Llamar"
+  },
+  "tabs": {
+    "home": "Inicio",
+    "map": "Mapa",
+    "advice": "Consejos",
+    "settings": "Ajustes"
+  },
+  "greeting": {
+    "morning": "Buenos Días",
+    "afternoon": "Buenas Tardes",
+    "evening": "Buenas Noches"
+  },
+  "dashboard": {
+    "daily_report_title": "Informe Diario de Salud",
+    "show_transcript": "Mostrar Transcripción",
+    "self_report_title": "Autoreporte",
+    "self_report_sub": "Reporta síntomas, contactos enfermos o escasez de suministros",
+    "report_btn": "Reportar Problema de Salud",
+    "risk_levels_title": "Niveles de Riesgo Local",
+    "view_map": "VER MAPA",
+    "otc_stock_title": "Medicamentos OTC Locales",
+    "quick_tip_label": "CONSEJO RÁPIDO"
+  },
+  "map": {
+    "search_placeholder": "Buscar ciudad...",
+    "tap_for_details": "Toca para más detalles",
+    "high_risk": "Alto Riesgo",
+    "active_alerts_one": "{{count}} Alerta Activa",
+    "active_alerts_other": "{{count}} Alertas Activas"
+  },
+  "advice": {
+    "page_title": "Pronóstico de Salud",
+    "tips_title": "Consejos de Salud de Hoy",
+    "risk_analysis_title": "Análisis de Riesgo",
+    "in_network_title": "Atención en Red",
+    "in_network_sub": "Encuentra proveedores de salud que acepten tu plan de seguro en tu área.",
+    "in_network_btn": "Buscar Proveedores en Red"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "accessibility": "ACCESIBILIDAD",
+    "haptic_label": "Alertas Hápticas de Salud",
+    "haptic_sub": "Vibración para actualizaciones importantes de salud",
+    "contrast_label": "Mapa de Alto Contraste",
+    "contrast_sub": "Mayor visibilidad de las zonas de riesgo en el mapa",
+    "audio_speed_label": "Velocidad de Audio",
+    "audio_speed_sub": "Ajusta la velocidad de reproducción de los informes de voz",
+    "notifications": "NOTIFICACIONES",
+    "health_alerts_label": "Alertas de Salud",
+    "health_alerts_sub": "Recibe notificaciones sobre riesgos de salud locales",
+    "language_region": "IDIOMA Y REGIÓN",
+    "language_label": "Idioma",
+    "language_current": "Español",
+    "privacy": "PRIVACIDAD Y SEGURIDAD",
+    "data_privacy_label": "Privacidad de Datos",
+    "data_privacy_sub": "Administra tus permisos",
+    "delete_data_label": "Eliminar Todos los Datos",
+    "delete_data_sub": "Borrar todos los datos de la cuenta",
+    "delete_confirm_title": "Eliminar Todos los Datos",
+    "delete_confirm_body": "Esto eliminará permanentemente los datos de tu cuenta. Esta acción no se puede deshacer."
+  },
+  "self_report": {
+    "title": "Reportar Problema de Salud",
+    "subtitle": "Ayúdanos a rastrear la salud de la comunidad reportando lo que estás experimentando.",
+    "feeling_sick_label": "Me siento enfermo/a",
+    "feeling_sick_sub": "Reporta tus síntomas para ayudar a rastrear brotes",
+    "people_sick_label": "Hay personas enfermas a mi alrededor",
+    "people_sick_sub": "Reporta enfermedades en tu hogar o lugar de trabajo",
+    "empty_shelves_label": "Veo estantes vacíos",
+    "empty_shelves_sub": "Reporta escasez de medicamentos o suministros",
+    "location_title": "Ubicación del Reporte",
+    "my_location": "Mi Ubicación",
+    "search_location": "Buscar Ubicación",
+    "search_placeholder": "Ingresa ciudad..."
+  },
+  "transcript_modal": {
+    "title": "Informe Diario de Salud",
+    "meta": "Transcripción  ·  {{duration}}"
+  },
+  "help_modal": {
+    "title": "Cómo Funciona SickSense",
+    "subtitle": "Todo lo que necesitas saber sobre tu panel de salud.",
+    "dashboard_title": "Panel Principal",
+    "dashboard_body": "Tu pantalla principal muestra un resumen personalizado de salud para tu ubicación actual, incluyendo un informe de audio diario, niveles de riesgo de enfermedades locales y medicamentos OTC cercanos.",
+    "audio_title": "Informe Diario de Salud",
+    "audio_body": "Cada mañana, SickSense genera un breve resumen de audio sobre la actividad de brotes, niveles de riesgo y consejos de salud en tu área. Toca el botón de reproducción para escucharlo, o \"Mostrar Transcripción\" para leerlo.",
+    "risk_title": "Niveles de Riesgo Local",
+    "risk_body": "Ver calificaciones de riesgo en tiempo real para enfermedades como la gripe estacional, el resfriado común y más. Las calificaciones se actualizan usando datos de existencias de farmacia, tiempos de espera en urgencias y otras señales locales.",
+    "otc_title": "Medicamentos OTC Locales",
+    "otc_body": "Verifica si medicamentos clave (Ibuprofeno, Pruebas de Antígeno, etc.) están disponibles en farmacias cercanas. La escasez de suministros a menudo predice brotes antes que los datos clínicos.",
+    "self_report_title": "Autoreporte",
+    "self_report_body": "Si tú o alguien cercano está enfermo o notas estantes vacíos, puedes enviar un reporte anónimo. Tus datos ayudan a SickSense a detectar brotes antes para todos.",
+    "map_title": "Vista del Mapa",
+    "map_body": "Cambia a la pestaña de Mapa para ver una vista geográfica de la actividad de brotes en Florida. Las áreas de alto riesgo están resaltadas para ayudarte a planificar.",
+    "privacy_title": "Tu Privacidad",
+    "privacy_body": "SickSense nunca comparte tus datos personales de salud. Todos los reportes son anónimos. Los datos de ubicación solo se usan para mostrarte información local; nunca se almacenan ni se venden."
+  },
+  "in_network_modal": {
+    "title": "Atención en Red",
+    "subtitle": "Proveedores que aceptan {{plan}} cerca de ti",
+    "accepting": "Aceptando Pacientes",
+    "not_accepting": "No Aceptando"
+  },
+  "map_filter_modal": {
+    "title": "Filtros del Mapa",
+    "risk_levels": "NIVELES DE RIESGO",
+    "high_risk": "Zonas de Alto Riesgo",
+    "medium_risk": "Zonas de Riesgo Moderado",
+    "low_risk": "Zonas de Bajo Riesgo",
+    "location_types": "TIPOS DE UBICACIÓN",
+    "pharmacies": "Farmacias",
+    "hospitals": "Hospitales",
+    "testing_sites": "Sitios de Prueba",
+    "apply": "Aplicar Filtros"
+  },
+  "area_detail_modal": {
+    "risk_index": "ÍNDICE DE RIESGO",
+    "risk_suffix": "Riesgo",
+    "trans_rate": "TASA DE TRANS.",
+    "active_alerts": "ALERTAS ACTIVAS",
+    "view_advice": "Ver Consejos de Protección"
   },
   "language": {
     "title": "Seleccione su idioma",

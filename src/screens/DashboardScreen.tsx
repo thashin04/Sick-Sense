@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -78,11 +79,11 @@ function getHeaderImage() {
   return BG_IMAGES.evening;
 }
 
-function getGreeting(): string {
+function getGreetingKey(): 'greeting.morning' | 'greeting.afternoon' | 'greeting.evening' {
   const h = new Date().getHours();
-  if (h < 12) return 'Good Morning';
-  if (h < 18) return 'Good Afternoon';
-  return 'Good Evening';
+  if (h < 12) return 'greeting.morning';
+  if (h < 18) return 'greeting.afternoon';
+  return 'greeting.evening';
 }
 
 function formatDate(date: Date): string {
@@ -131,6 +132,7 @@ const waveStyles = StyleSheet.create({
 
 export default function DashboardScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
+  const { t } = useTranslation();
   const HEADER_H = 250;
 
   const [selfReportOpen, setSelfReportOpen] = useState(false);
@@ -239,7 +241,7 @@ export default function DashboardScreen({ navigation }: Props) {
               {/* Top row */}
               <View style={styles.headerTopRow}>
                 <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
-                  <Text style={styles.locationTxt}>Current Location</Text>
+                  <Text style={styles.locationTxt}>{t('common.current_location')}</Text>
                   <Ionicons name="chevron-down" size={14} color={Colors.indigo} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setHelpOpen(true)} hitSlop={12}>
@@ -251,7 +253,7 @@ export default function DashboardScreen({ navigation }: Props) {
               {/* Greeting */}
               <Text style={styles.dateText}>{formatDate(new Date())}</Text>
               <Text style={styles.greeting} numberOfLines={2}>
-                {getGreeting()},{'\n'}Thashin
+                {t(getGreetingKey())},{'\n'}Thashin
               </Text>
             </View>
           </SafeAreaView>
@@ -260,7 +262,7 @@ export default function DashboardScreen({ navigation }: Props) {
         <View style={styles.scrollInner}>
         {/* Daily Health Report */}
         <View style={[styles.card, { marginTop: 20 }]}>
-          <Text style={styles.cardTitle}>Daily Health Report</Text>
+          <Text style={styles.cardTitle}>{t('dashboard.daily_report_title')}</Text>
           <TouchableOpacity
             style={styles.playerRow}
             activeOpacity={0.7}
@@ -280,30 +282,30 @@ export default function DashboardScreen({ navigation }: Props) {
             style={styles.transcriptLink}
             onPress={() => setTranscriptOpen(true)}
           >
-            <Text style={styles.transcriptLinkTxt}>Show Transcript</Text>
+            <Text style={styles.transcriptLinkTxt}>{t('dashboard.show_transcript')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Self Report */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Self Report</Text>
+          <Text style={styles.cardTitle}>{t('dashboard.self_report_title')}</Text>
           <Text style={styles.selfReportSub}>
-            Report symptoms, sick contacts, or supply shortages
+            {t('dashboard.self_report_sub')}
           </Text>
           <TouchableOpacity
             style={styles.reportBtn}
             onPress={() => setSelfReportOpen(true)}
             activeOpacity={0.85}
           >
-            <Text style={styles.reportBtnTxt}>Report Health Issue</Text>
+            <Text style={styles.reportBtnTxt}>{t('dashboard.report_btn')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Local Risk Levels */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Local Risk Levels</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.risk_levels_title')}</Text>
           <TouchableOpacity hitSlop={8} onPress={() => navigation.navigate('Map')}>
-            <Text style={styles.sectionLink}>VIEW MAP</Text>
+            <Text style={styles.sectionLink}>{t('dashboard.view_map')}</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.riskRow}>
@@ -328,7 +330,7 @@ export default function DashboardScreen({ navigation }: Props) {
 
         {/* Local OTC Stock */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Local OTC Stock</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.otc_stock_title')}</Text>
           <Text style={styles.sectionMeta}>
             {OTC_STORE}  ·  {OTC_DISTANCE}
           </Text>
@@ -352,7 +354,7 @@ export default function DashboardScreen({ navigation }: Props) {
         <View style={styles.tipCard}>
           <View style={styles.tipHeader}>
             <Ionicons name="warning-outline" size={16} color={Colors.sunlight} />
-            <Text style={styles.tipLabel}>  QUICK TIP</Text>
+            <Text style={styles.tipLabel}>  {t('dashboard.quick_tip_label')}</Text>
           </View>
           <Text style={styles.tipBody}>{QUICK_TIP}</Text>
         </View>
@@ -365,29 +367,25 @@ export default function DashboardScreen({ navigation }: Props) {
       <SafeAreaView edges={['bottom']} style={styles.tabBarSafe}>
         <View style={styles.tabBar}>
           {[
-            { icon: 'home' as const, label: 'Home', active: true },
-            { icon: 'map-outline' as const, label: 'Map', active: false },
-            { icon: 'trending-up-outline' as const, label: 'Advice', active: false },
-            { icon: 'settings-outline' as const, label: 'Settings', active: false },
+            { icon: 'home' as const, key: 'Home', label: t('tabs.home'), active: true },
+            { icon: 'map-outline' as const, key: 'Map', label: t('tabs.map'), active: false },
+            { icon: 'trending-up-outline' as const, key: 'Advice', label: t('tabs.advice'), active: false },
+            { icon: 'settings-outline' as const, key: 'Settings', label: t('tabs.settings'), active: false },
           ].map((tab) => (
             <TouchableOpacity
-              key={tab.label}
+              key={tab.key}
               style={styles.tabItem}
               activeOpacity={0.7}
               onPress={() => {
                 if (!tab.active) {
-                  if (tab.label === 'Map') navigation.navigate('Map');
-                  if (tab.label === 'Advice') navigation.navigate('Advice');
-                  if (tab.label === 'Settings') navigation.navigate('Settings');
+                  if (tab.key === 'Map') navigation.navigate('Map');
+                  if (tab.key === 'Advice') navigation.navigate('Advice');
+                  if (tab.key === 'Settings') navigation.navigate('Settings');
                 }
               }}
             >
               <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons
-                  name={tab.active ? tab.icon : tab.icon}
-                  size={22}
-                  color={tab.active ? Colors.white : '#9CA3AF'}
-                />
+                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : '#9CA3AF'} />
               </View>
               <Text style={[styles.tabLabel, tab.active && styles.tabLabelActive]}>
                 {tab.label}
