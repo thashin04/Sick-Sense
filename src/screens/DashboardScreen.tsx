@@ -182,6 +182,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const [audioDuration, setAudioDuration] = useState('0:00');
   const [isPlaying, setIsPlaying] = useState(false);
   const [quickTip, setQuickTip] = useState(QUICK_TIP);
+  const [userName, setUserName] = useState('User');
   
   // Modern Expo Audio Player (Canary 55)
   const player = useAudioPlayer(`http://localhost:8000/api/city/${encodeURIComponent(selectedCity)}/audio-report`);
@@ -196,6 +197,9 @@ export default function DashboardScreen({ navigation }: Props) {
           const authStr = await AsyncStorage.getItem('@user_auth');
           if (authStr) {
             const auth = JSON.parse(authStr);
+            if (auth.name) {
+              setUserName(auth.name.split(' ')[0]);
+            }
             if (auth.uid) {
               const prefRes = await fetch(`http://localhost:8000/api/user/${auth.uid}/preferences`);
               if (prefRes.ok) {
@@ -350,7 +354,7 @@ export default function DashboardScreen({ navigation }: Props) {
               {/* Greeting */}
               <Text style={[styles.dateText, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]}>{formatDate(new Date())}</Text>
               <Text style={[styles.greeting, { color: theme.heading }]} numberOfLines={2}>
-                {t(getGreetingKey())},{'\n'}Thashin
+                {t(getGreetingKey())},{'\n'}{userName}
               </Text>
             </View>
           </SafeAreaView>

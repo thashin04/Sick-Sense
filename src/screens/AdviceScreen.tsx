@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 import InNetworkModal from '../components/modals/InNetworkModal';
@@ -101,10 +102,19 @@ export default function AdviceScreen({ navigation }: Props) {
   const [tips, setTips] = React.useState<ActionableTip[]>(ACTIONABLE_TIPS);
   const [risks, setRisks] = React.useState<RiskAnalysisItem[]>(RISK_ITEMS);
   const [forecast, setForecast] = React.useState('Moderate');
+  const [userName, setUserName] = React.useState('User');
 
   React.useEffect(() => {
     async function fetchAdvice() {
       try {
+        const authStr = await AsyncStorage.getItem('@user_auth');
+        if (authStr) {
+          const auth = JSON.parse(authStr);
+          if (auth.name) {
+            setUserName(auth.name.split(' ')[0]);
+          }
+        }
+        
         const res = await fetch(`http://localhost:8000/api/city/${encodeURIComponent(selectedCity)}/summary`);
         if (res.ok) {
           const data = await res.json();
@@ -198,7 +208,7 @@ export default function AdviceScreen({ navigation }: Props) {
               <Text style={[styles.pageSubtitle, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]}>
                 "The local risk level is{' '}
                 <Text style={[styles.riskWord, { color: theme.heading }]}>{forecast}</Text>
-                {' '}today, Shin."
+                {' '}today, {userName}."
               </Text>
             </View>
           </SafeAreaView>
