@@ -10,13 +10,13 @@ import { StatusBar } from 'expo-status-bar';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
+import { useAppTheme } from '../hooks/useAppTheme';
 
-const GRAPHIC_SOURCE = require('../assets/landing-graphic.png');
-const HILL_SOURCE = (() => {
-  try { return require('../assets/landing-hill.png'); } catch { return null; }
-})();
+const LIGHT_GRAPHIC = require('../assets/landing-graphic.png');
+const DARK_GRAPHIC = require('../assets/dark-landing-graphic.png');
+const LIGHT_HILL = require('../assets/landing-hill.png');
+const DARK_HILL = require('../assets/dark-landing-hill.png');
 
-/** Returns height/width ratio for a local image source. */
 function aspectRatio(source: ReturnType<typeof require>, fallback = 1): number {
   try {
     const info = Image.resolveAssetSource(source);
@@ -32,32 +32,32 @@ type Props = {
 
 export default function LandingScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
+  const { isDark } = useAppTheme();
 
-  // Scale each image proportionally to screen width — no crop, no distortion
-  const graphicH = width * aspectRatio(GRAPHIC_SOURCE, 844 / 390);
-  const hillH    = HILL_SOURCE ? width * aspectRatio(HILL_SOURCE, 0.55) : 0;
+  const graphic = isDark ? DARK_GRAPHIC : LIGHT_GRAPHIC;
+  const hill    = isDark ? DARK_HILL    : LIGHT_HILL;
+
+  const graphicH = width * aspectRatio(graphic, 844 / 390);
+  const hillH    = hill ? width * aspectRatio(hill, 0.55) : 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.indigo }}>
       <StatusBar style="light" />
 
-      {/* 1 — Full Figma graphic, fitted to screen width */}
       <Image
-        source={GRAPHIC_SOURCE}
+        source={graphic}
         style={{ position: 'absolute', top: 0, left: 0, width, height: graphicH }}
         resizeMode="stretch"
       />
 
-      {/* 2 — Hill arch overlay on top of the graphic */}
-      {HILL_SOURCE && (
+      {hill && (
         <Image
-          source={HILL_SOURCE}
+          source={hill}
           style={{ position: 'absolute', bottom: 0, left: 0, width, height: hillH }}
           resizeMode="stretch"
         />
       )}
 
-      {/* 3 — Text + buttons anchored to the bottom white area */}
       <View style={styles.content}>
         <View style={styles.spacer} />
         <View style={styles.textBlock}>
@@ -92,56 +92,43 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 26,
   },
-  spacer: {
-    flex: 1,
-  },
-  textBlock: {
-    paddingBottom: 52,
-  },
+  spacer: { flex: 1 },
+  textBlock: { paddingBottom: 52 },
   title: {
     fontFamily: FontFamily.extraBold,
     fontSize: 34,
-    color: Colors.darkBlue,
+    color: '#FFFFFF',
     lineHeight: 42,
     marginBottom: 12,
   },
   subtitle: {
     fontFamily: FontFamily.regular,
     fontSize: FontSize.md,
-    color: Colors.indigo,
+    color: '#A3C7FF',
     lineHeight: 22,
     marginBottom: 32,
   },
-  buttons: {
-    gap: 12,
-  },
+  buttons: { gap: 12 },
   loginBtn: {
-    backgroundColor: Colors.indigo,
-    paddingVertical: 17,
-    borderRadius: 50,
-    alignItems: 'center',
-    shadowColor: Colors.indigo,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  loginTxt: {
-    fontFamily: FontFamily.semiBold,
-    fontSize: FontSize.lg,
-    color: '#FFFFFF',
-  },
-  signupBtn: {
     backgroundColor: '#FFFFFF',
     paddingVertical: 17,
     borderRadius: 50,
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: Colors.lightMidBlue,
+  },
+  loginTxt: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: FontSize.lg,
+    color: Colors.indigo,
+  },
+  signupBtn: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingVertical: 17,
+    borderRadius: 50,
+    alignItems: 'center',
   },
   signupTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.lg,
-    color: Colors.babyBlue,
+    color: '#FFFFFF',
   },
 });

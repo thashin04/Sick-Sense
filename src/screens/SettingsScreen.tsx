@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Settings'>;
@@ -56,11 +57,13 @@ function SpeedSlider({ value, onChange }: { value: number; onChange: (v: number)
     },
   });
 
+  const theme = useAppTheme();
+
   return (
     <View style={sliderStyles.wrap}>
       <View
         ref={trackRef}
-        style={sliderStyles.track}
+        style={[sliderStyles.track, { backgroundColor: theme.divider }]}
         onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
         {...panResponder.panHandlers}
       >
@@ -69,14 +72,14 @@ function SpeedSlider({ value, onChange }: { value: number; onChange: (v: number)
         {/* Thumb */}
         {trackWidth > 0 && (
           <View
-            style={[sliderStyles.thumb, { left: progress * trackWidth - THUMB_SIZE / 2 }]}
+            style={[sliderStyles.thumb, { left: progress * trackWidth - THUMB_SIZE / 2, borderColor: theme.isDark ? '#A3C7FF' : Colors.indigo, shadowColor: theme.shadowColor }]}
           />
         )}
       </View>
       <View style={sliderStyles.labels}>
-        <Text style={sliderStyles.labelEdge}>{SPEED_MIN.toFixed(1)}x</Text>
-        <Text style={sliderStyles.labelCenter}>{value.toFixed(1)}x</Text>
-        <Text style={sliderStyles.labelEdge}>{SPEED_MAX.toFixed(1)}x</Text>
+        <Text style={[sliderStyles.labelEdge, { color: theme.caption }]}>{SPEED_MIN.toFixed(1)}x</Text>
+        <Text style={[sliderStyles.labelCenter, { color: theme.isDark ? '#FFFFFF' : Colors.indigo }]}>{value.toFixed(1)}x</Text>
+        <Text style={[sliderStyles.labelEdge, { color: theme.caption }]}>{SPEED_MAX.toFixed(1)}x</Text>
       </View>
     </View>
   );
@@ -132,8 +135,8 @@ const sliderStyles = StyleSheet.create({
 
 function SettingToggleRow({
   icon,
-  iconBg = Colors.cloudBlue,
-  iconColor = Colors.indigo,
+  iconBg,
+  iconColor,
   label,
   subtitle,
   value,
@@ -145,23 +148,24 @@ function SettingToggleRow({
   label: string;
   subtitle: string;
   value: boolean;
-  onToggle: () => void;
+  onToggle: (v: boolean) => void;
 }) {
+  const theme = useAppTheme();
   return (
     <View style={rowStyles.row}>
-      <View style={[rowStyles.iconWrap, { backgroundColor: iconBg }]}>
-        <Ionicons name={icon} size={20} color={iconColor} />
+      <View style={[rowStyles.iconWrap, { backgroundColor: iconBg || theme.surfaceSecondary }]}>
+        <Ionicons name={icon} size={20} color={iconColor || (theme.isDark ? '#A3C7FF' : Colors.indigo)} />
       </View>
       <View style={rowStyles.text}>
-        <Text style={rowStyles.label}>{label}</Text>
-        <Text style={rowStyles.subtitle}>{subtitle}</Text>
+        <Text style={[rowStyles.label, { color: theme.body }]}>{label}</Text>
+        <Text style={[rowStyles.subtitle, { color: theme.muted }]}>{subtitle}</Text>
       </View>
       <Switch
         value={value}
         onValueChange={onToggle}
-        trackColor={{ false: Colors.lightMidBlue, true: Colors.indigo }}
+        trackColor={{ false: theme.divider, true: Colors.indigo }}
         thumbColor={Colors.white}
-        ios_backgroundColor={Colors.lightMidBlue}
+        ios_backgroundColor={theme.divider}
       />
     </View>
   );
@@ -169,8 +173,8 @@ function SettingToggleRow({
 
 function SettingActionRow({
   icon,
-  iconBg = Colors.cloudBlue,
-  iconColor = Colors.indigo,
+  iconBg,
+  iconColor,
   label,
   subtitle,
   actionLabel,
@@ -186,14 +190,15 @@ function SettingActionRow({
   actionColor?: string;
   onPress: () => void;
 }) {
+  const theme = useAppTheme();
   return (
     <View style={rowStyles.row}>
-      <View style={[rowStyles.iconWrap, { backgroundColor: iconBg }]}>
-        <Ionicons name={icon} size={20} color={iconColor} />
+      <View style={[rowStyles.iconWrap, { backgroundColor: iconBg || theme.surfaceSecondary }]}>
+        <Ionicons name={icon} size={20} color={iconColor || (theme.isDark ? '#A3C7FF' : Colors.indigo)} />
       </View>
       <View style={rowStyles.text}>
-        <Text style={rowStyles.label}>{label}</Text>
-        <Text style={rowStyles.subtitle}>{subtitle}</Text>
+        <Text style={[rowStyles.label, { color: theme.body }]}>{label}</Text>
+        <Text style={[rowStyles.subtitle, { color: theme.muted }]}>{subtitle}</Text>
       </View>
       <TouchableOpacity onPress={onPress} hitSlop={12}>
         <Text style={[rowStyles.action, { color: actionColor }]}>{actionLabel}</Text>
@@ -224,16 +229,18 @@ const rowStyles = StyleSheet.create({
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  const theme = useAppTheme();
   return (
     <View style={sectionStyles.wrap}>
-      <Text style={sectionStyles.label}>{label}</Text>
-      <View style={sectionStyles.card}>{children}</View>
+      <Text style={[sectionStyles.label, { color: theme.sectionLabel }]}>{label}</Text>
+      <View style={[sectionStyles.card, { backgroundColor: theme.surface, shadowColor: theme.shadowColor }]}>{children}</View>
     </View>
   );
 }
 
 function Divider() {
-  return <View style={{ height: 1, backgroundColor: Colors.lightMidBlue, marginVertical: 2 }} />;
+  const theme = useAppTheme();
+  return <View style={{ height: 1, backgroundColor: theme.divider, marginVertical: 2 }} />;
 }
 
 const sectionStyles = StyleSheet.create({
@@ -263,6 +270,7 @@ const sectionStyles = StyleSheet.create({
 
 export default function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const [haptic, setHaptic] = useState(true);
   const [highContrast, setHighContrast] = useState(false);
   const [audioSpeed, setAudioSpeed] = useState(1.2);
@@ -287,10 +295,10 @@ export default function SettingsScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.root}>
-      <SafeAreaView edges={['top']} style={{ backgroundColor: Colors.cloudBlue }}>
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: theme.background }}>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>{t('settings.title')}</Text>
+          <Text style={[styles.title, { color: theme.heading }]}>{t('settings.title')}</Text>
         </View>
       </SafeAreaView>
 
@@ -299,6 +307,37 @@ export default function SettingsScreen({ navigation }: Props) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* APPEARANCE */}
+        <Section label={t('settings.appearance')}>
+          <View style={{ paddingVertical: 14 }}>
+            <SettingToggleRow
+              icon="color-palette-outline"
+              label={t('settings.follow_system_label')}
+              subtitle={t('settings.follow_system_sub')}
+              value={theme.themePref === 'system'}
+              onToggle={(val) => {
+                if (val) {
+                  theme.setThemePref('system');
+                } else {
+                  theme.setThemePref(theme.isDark ? 'dark' : 'light');
+                }
+              }}
+            />
+          </View>
+          <Divider />
+          <View style={{ paddingVertical: 14 }}>
+            <SettingToggleRow
+              icon="moon-outline"
+              label={t('settings.dark_mode_label')}
+              subtitle={t('settings.dark_mode_sub')}
+              value={theme.isDark}
+              onToggle={(val) => {
+                theme.setThemePref(val ? 'dark' : 'light');
+              }}
+            />
+          </View>
+        </Section>
+
         {/* ACCESSIBILITY */}
         <Section label={t('settings.accessibility')}>
           <View style={{ paddingVertical: 14 }}>
@@ -394,8 +433,8 @@ export default function SettingsScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* Tab Bar */}
-      <SafeAreaView edges={['bottom']} style={styles.tabBarSafe}>
-        <View style={styles.tabBar}>
+      <SafeAreaView edges={['bottom']} style={[styles.tabBarSafe, { backgroundColor: theme.tabBar }]}>
+        <View style={[styles.tabBar, { backgroundColor: theme.tabBar, borderTopColor: theme.tabBarBorder }]}>
           {[
             { icon: 'home-outline' as const, key: 'Home', label: t('tabs.home'), active: false },
             { icon: 'map-outline' as const, key: 'Map', label: t('tabs.map'), active: false },
@@ -415,9 +454,9 @@ export default function SettingsScreen({ navigation }: Props) {
               }}
             >
               <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : '#9CA3AF'} />
+                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : theme.tabIconInactive} />
               </View>
-              <Text style={[styles.tabLabel, tab.active && styles.tabLabelActive]}>
+              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.isDark ? '#FFFFFF' : Colors.indigo, fontFamily: FontFamily.semiBold }]}>
                 {tab.label}
               </Text>
             </TouchableOpacity>

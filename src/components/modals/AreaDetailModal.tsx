@@ -9,6 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors, FontFamily, FontSize } from '../../theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 export interface AreaAlert {
   name: string;
@@ -58,20 +59,21 @@ function alertIconBg(severity: AreaAlert['severity']) {
 
 export default function AreaDetailModal({ visible, onClose, area }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
+        <TouchableOpacity activeOpacity={1} style={[styles.sheet, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
           {/* Close */}
           <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={12}>
-            <Ionicons name="close" size={20} color="#9CA3AF" />
+            <Ionicons name="close" size={20} color={theme.muted} />
           </TouchableOpacity>
 
           {/* Title row */}
           <View style={styles.titleRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.areaName}>{area.name}</Text>
-              <Text style={styles.areaCity}>
+              <Text style={[styles.areaName, { color: theme.heading }]}>{area.name}</Text>
+              <Text style={[styles.areaCity, { color: theme.muted }]}>
                 {area.city}, {area.state}
               </Text>
             </View>
@@ -82,15 +84,15 @@ export default function AreaDetailModal({ visible, onClose, area }: Props) {
 
           {/* Stats row */}
           <View style={styles.statsRow}>
-            <View style={[styles.statCard, { backgroundColor: '#FEF2F2' }]}>
-              <Text style={styles.statLabel}>{t('area_detail_modal.risk_index')}</Text>
+            <View style={[styles.statCard, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : '#FEF2F2' }]}>
+              <Text style={[styles.statLabel, { color: theme.sectionLabel }]}>{t('area_detail_modal.risk_index')}</Text>
               <Text style={[styles.statValue, { color: riskColor(area.riskLevel) }]}>
                 {area.riskLevel} {t('area_detail_modal.risk_suffix')}
               </Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: Colors.cloudBlue }]}>
-              <Text style={styles.statLabel}>{t('area_detail_modal.trans_rate')}</Text>
-              <Text style={[styles.statValue, { color: Colors.indigo }]}>
+            <View style={[styles.statCard, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : Colors.cloudBlue }]}>
+              <Text style={[styles.statLabel, { color: theme.sectionLabel }]}>{t('area_detail_modal.trans_rate')}</Text>
+              <Text style={[styles.statValue, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]}>
                 {area.transmissionRate.toFixed(2)}
               </Text>
             </View>
@@ -98,19 +100,19 @@ export default function AreaDetailModal({ visible, onClose, area }: Props) {
 
           {/* Active alerts */}
           <View style={styles.alertsHeader}>
-            <Text style={styles.alertsTitle}>{t('area_detail_modal.active_alerts')}</Text>
+            <Text style={[styles.alertsTitle, { color: theme.sectionLabel }]}>{t('area_detail_modal.active_alerts')}</Text>
             <View style={styles.alertDot} />
           </View>
 
           <ScrollView style={styles.alertsList} showsVerticalScrollIndicator={false}>
             {area.alerts.map((alert, i) => (
-              <View key={i} style={styles.alertCard}>
-                <View style={[styles.alertIconWrap, { backgroundColor: alertIconBg(alert.severity) }]}>
+              <View key={i} style={[styles.alertCard, { borderColor: theme.border }]}>
+                <View style={[styles.alertIconWrap, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : alertIconBg(alert.severity) }]}>
                   <Ionicons name="alert-circle-outline" size={20} color={alertIconColor(alert.severity)} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.alertName}>{alert.name}</Text>
-                  <Text style={styles.alertDesc}>{alert.description}</Text>
+                  <Text style={[styles.alertName, { color: theme.body }]}>{alert.name}</Text>
+                  <Text style={[styles.alertDesc, { color: theme.muted }]}>{alert.description}</Text>
                 </View>
               </View>
             ))}

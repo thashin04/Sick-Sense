@@ -21,6 +21,7 @@ import TranscriptModal from '../components/modals/TranscriptModal';
 import HelpModal from '../components/modals/HelpModal';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Dashboard'>;
@@ -62,16 +63,24 @@ const QUICK_TIP =
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const BG_IMAGES = {
-  day: require('../assets/light-day.png'),
-  afternoon: require('../assets/light-afternoon.png'),
-  evening: require('../assets/light-evening.png'),
+  light: {
+    day: require('../assets/light-day.png'),
+    afternoon: require('../assets/light-afternoon.png'),
+    evening: require('../assets/light-evening.png'),
+  },
+  dark: {
+    day: (() => { try { return require('../assets/dark-day.png'); } catch { return require('../assets/light-day.png'); } })(),
+    afternoon: (() => { try { return require('../assets/dark-afternoon.png'); } catch { return require('../assets/light-afternoon.png'); } })(),
+    evening: (() => { try { return require('../assets/dark-night.png'); } catch { return require('../assets/light-evening.png'); } })(),
+  },
 };
 
-function getHeaderImage() {
+function getHeaderImage(isDark: boolean) {
+  const set = isDark ? BG_IMAGES.dark : BG_IMAGES.light;
   const h = new Date().getHours();
-  if (h >= 5 && h < 12) return BG_IMAGES.day;
-  if (h >= 12 && h < 17) return BG_IMAGES.afternoon;
-  return BG_IMAGES.evening;
+  if (h >= 5 && h < 12) return set.day;
+  if (h >= 12 && h < 17) return set.afternoon;
+  return set.evening;
 }
 
 function getGreetingKey(): 'greeting.morning' | 'greeting.afternoon' | 'greeting.evening' {
@@ -128,6 +137,7 @@ const waveStyles = StyleSheet.create({
 export default function DashboardScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const HEADER_H = 250;
 
   const [selfReportOpen, setSelfReportOpen] = useState(false);
@@ -278,7 +288,7 @@ export default function DashboardScreen({ navigation }: Props) {
   }, []);
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
       {/* ── Scrollable content (header scrolls with page) ── */}
       <ScrollView
         style={styles.scroll}
@@ -288,7 +298,7 @@ export default function DashboardScreen({ navigation }: Props) {
         {/* ── Header ── */}
         <View style={styles.headerContainer}>
           <Image
-            source={getHeaderImage()}
+            source={getHeaderImage(theme.isDark)}
             style={{ width: '100%', height: HEADER_H + 110 }}
             resizeMode="cover"
           />
@@ -317,8 +327,8 @@ export default function DashboardScreen({ navigation }: Props) {
 
         <View style={styles.scrollInner}>
         {/* Daily Health Report */}
-        <View style={[styles.card, { marginTop: 20 }]}>
-          <Text style={styles.cardTitle}>{t('dashboard.daily_report_title')}</Text>
+        <View style={[styles.card, { marginTop: 20, backgroundColor: theme.surface }]}>
+          <Text style={[styles.cardTitle, { color: theme.subheading }]}>{t('dashboard.daily_report_title')}</Text>
           <View style={styles.playerRow}>
             <TouchableOpacity
               style={styles.playBtn}
@@ -359,14 +369,14 @@ export default function DashboardScreen({ navigation }: Props) {
             style={styles.transcriptLink}
             onPress={() => setTranscriptOpen(true)}
           >
-            <Text style={styles.transcriptLinkTxt}>{t('dashboard.show_transcript')}</Text>
+            <Text style={[styles.transcriptLinkTxt, { color: theme.body }]}>{t('dashboard.show_transcript')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Self Report */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t('dashboard.self_report_title')}</Text>
-          <Text style={styles.selfReportSub}>
+        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.cardTitle, { color: theme.subheading }]}>{t('dashboard.self_report_title')}</Text>
+          <Text style={[styles.selfReportSub, { color: theme.muted }]}>
             {t('dashboard.self_report_sub')}
           </Text>
           <TouchableOpacity
@@ -380,17 +390,17 @@ export default function DashboardScreen({ navigation }: Props) {
 
         {/* Local Risk Levels */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t('dashboard.risk_levels_title')}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.subheading }]}>{t('dashboard.risk_levels_title')}</Text>
           <TouchableOpacity hitSlop={8} onPress={() => navigation.navigate('Map')}>
             <Text style={styles.sectionLink}>{t('dashboard.view_map')}</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.riskRow}>
           {riskLevels.map((risk) => (
-            <View key={risk.name} style={styles.riskCard}>
-              <Ionicons name={risk.icon} size={22} color={Colors.indigo} />
-              <Text style={styles.riskName}>{risk.name}</Text>
-              <Text style={[styles.riskLevel, { color: (risk.level === 'Medium' || risk.level === 'Moderate') ? Colors.black : riskColor(risk.level) }]}>
+            <View key={risk.name} style={[styles.riskCard, { backgroundColor: theme.surface }]}>
+              <Ionicons name={risk.icon} size={22} color={theme.isDark ? '#A3C7FF' : Colors.indigo} />
+              <Text style={[styles.riskName, { color: theme.body }]}>{risk.name}</Text>
+              <Text style={[styles.riskLevel, { color: (risk.level === 'Medium' || risk.level === 'Moderate') ? (theme.isDark ? Colors.white : Colors.black) : riskColor(risk.level) }]}>
                 {risk.level}
               </Text>
               <View style={styles.riskBarTrack}>
@@ -407,19 +417,19 @@ export default function DashboardScreen({ navigation }: Props) {
 
         {/* Local OTC Stock */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t('dashboard.otc_stock_title')}</Text>
-          <Text style={styles.sectionMeta}>
+          <Text style={[styles.sectionTitle, { color: theme.subheading }]}>{t('dashboard.otc_stock_title')}</Text>
+          <Text style={[styles.sectionMeta, { color: theme.muted }]}>
             {OTC_STORE}  ·  {OTC_DISTANCE}
           </Text>
         </View>
-        <View style={[styles.card, { marginBottom: 32 }]}>
+        <View style={[styles.card, { marginBottom: 32, backgroundColor: theme.surface, shadowColor: theme.shadowColor }]}>
           {otcItems.map((item, i) => (
             <View
               key={item.name}
-              style={[styles.otcRow, i < otcItems.length - 1 && styles.otcRowBorder]}
+              style={[styles.otcRow, i < otcItems.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.divider }]}
             >
               <View style={[styles.otcDot, { backgroundColor: otcStatusColor(item.status) }]} />
-              <Text style={styles.otcName}>{item.name}</Text>
+              <Text style={[styles.otcName, { color: theme.body }]}>{item.name}</Text>
               <Text style={[styles.otcStatus, { color: otcStatusColor(item.status) }]}>
                 {item.status}
               </Text>
@@ -428,12 +438,12 @@ export default function DashboardScreen({ navigation }: Props) {
         </View>
 
         {/* Quick Tip */}
-        <View style={styles.tipCard}>
+        <View style={[styles.tipCard, theme.isDark && { backgroundColor: 'rgba(255,200,0,0.12)', borderLeftColor: Colors.sunlight }]}>
           <View style={styles.tipHeader}>
             <Ionicons name="warning-outline" size={16} color={Colors.sunlight} />
-            <Text style={styles.tipLabel}>  {t('dashboard.quick_tip_label')}</Text>
+            <Text style={[styles.tipLabel, theme.isDark && { color: Colors.sunlight }]}>  {t('dashboard.quick_tip_label')}</Text>
           </View>
-          <Text style={styles.tipBody}>{quickTip}</Text>
+          <Text style={[styles.tipBody, theme.isDark && { color: '#FFD580' }]}>{quickTip}</Text>
         </View>
 
         <View style={{ height: 16 }} />
@@ -441,8 +451,8 @@ export default function DashboardScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* ── Bottom Tab Bar ── */}
-      <SafeAreaView edges={['bottom']} style={styles.tabBarSafe}>
-        <View style={styles.tabBar}>
+      <SafeAreaView edges={['bottom']} style={[styles.tabBarSafe, { backgroundColor: theme.tabBar }]}>
+        <View style={[styles.tabBar, { backgroundColor: theme.tabBar, borderTopColor: theme.tabBarBorder }]}>
           {[
             { icon: 'home' as const, key: 'Home', label: t('tabs.home'), active: true },
             { icon: 'map-outline' as const, key: 'Map', label: t('tabs.map'), active: false },
@@ -462,9 +472,9 @@ export default function DashboardScreen({ navigation }: Props) {
               }}
             >
               <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : '#9CA3AF'} />
+                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : theme.tabIconInactive} />
               </View>
-              <Text style={[styles.tabLabel, tab.active && styles.tabLabelActive]}>
+              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.isDark ? '#FFFFFF' : Colors.indigo, fontFamily: FontFamily.semiBold }]}>
                 {tab.label}
               </Text>
             </TouchableOpacity>

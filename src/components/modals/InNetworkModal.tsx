@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, FontSize } from '../../theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -115,65 +116,66 @@ interface Props {
 
 export default function InNetworkModal({ visible, onClose, insurancePlan = 'Your Plan' }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
+        <TouchableOpacity activeOpacity={1} style={[styles.sheet, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
           <View style={styles.handle} />
 
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>{t('in_network_modal.title')}</Text>
-              <Text style={styles.subtitle}>
+              <Text style={[styles.title, { color: theme.heading }]}>{t('in_network_modal.title')}</Text>
+              <Text style={[styles.subtitle, { color: theme.muted }]}>
                 {t('in_network_modal.subtitle', { plan: insurancePlan })}
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={22} color="#6B7280" />
+              <Ionicons name="close" size={22} color={theme.muted} />
             </TouchableOpacity>
           </View>
 
           {/* Provider list */}
           <ScrollView showsVerticalScrollIndicator={false} style={styles.list}>
             {PROVIDERS.map((p) => (
-              <View key={p.id} style={styles.card}>
+              <View key={p.id} style={[styles.card, { borderColor: theme.border }]}>
                 {/* Icon + name row */}
                 <View style={styles.cardHeader}>
-                  <View style={[styles.iconWrap, { backgroundColor: typeBg(p.type) }]}>
+                  <View style={[styles.iconWrap, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : typeBg(p.type) }]}>
                     <Ionicons name={typeIcon(p.type)} size={20} color={typeColor(p.type)} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.providerName}>{p.name}</Text>
-                    <Text style={styles.specialty}>{p.specialty}</Text>
+                    <Text style={[styles.providerName, { color: theme.body }]}>{p.name}</Text>
+                    <Text style={[styles.specialty, { color: theme.muted }]}>{p.specialty}</Text>
                   </View>
-                  <View style={styles.distancePill}>
-                    <Text style={styles.distanceTxt}>{p.distance}</Text>
+                  <View style={[styles.distancePill, { backgroundColor: theme.surfaceSecondary }]}>
+                    <Text style={[styles.distanceTxt, { color: theme.isDark ? '#FFFFFF' : Colors.indigo }]}>{p.distance}</Text>
                   </View>
                 </View>
 
                 {/* Address */}
                 <View style={styles.addressRow}>
-                  <Ionicons name="location-outline" size={13} color="#9CA3AF" />
-                  <Text style={styles.addressTxt}>{p.address}</Text>
+                  <Ionicons name="location-outline" size={13} color={theme.muted} />
+                  <Text style={[styles.addressTxt, { color: theme.muted }]}>{p.address}</Text>
                 </View>
 
                 {/* Status + actions */}
                 <View style={styles.cardFooter}>
-                  <View style={[styles.statusPill, { backgroundColor: p.acceptingPatients ? '#F0FFF4' : '#FEF2F2' }]}>
+                  <View style={[styles.statusPill, { backgroundColor: p.acceptingPatients ? (theme.isDark ? 'rgba(34,197,94,0.12)' : '#F0FFF4') : (theme.isDark ? 'rgba(244,63,94,0.12)' : '#FEF2F2') }]}>
                     <View style={[styles.statusDot, { backgroundColor: p.acceptingPatients ? '#22C55E' : Colors.coral }]} />
-                    <Text style={[styles.statusTxt, { color: p.acceptingPatients ? '#166534' : '#991B1B' }]}>
+                    <Text style={[styles.statusTxt, { color: p.acceptingPatients ? (theme.isDark ? '#86EFAC' : '#166534') : (theme.isDark ? '#FDA4AF' : '#991B1B') }]}>
                       {p.acceptingPatients ? t('in_network_modal.accepting') : t('in_network_modal.not_accepting')}
                     </Text>
                   </View>
 
                   <TouchableOpacity
-                    style={styles.callBtn}
+                    style={[styles.callBtn, { borderColor: theme.border }]}
                     activeOpacity={0.8}
                     onPress={() => Linking.openURL(`tel:${p.phone}`)}
                   >
-                    <Ionicons name="call-outline" size={14} color={Colors.indigo} />
-                    <Text style={styles.callTxt}>{t('common.call')}</Text>
+                    <Ionicons name="call-outline" size={14} color={theme.isDark ? '#A3C7FF' : Colors.indigo} />
+                    <Text style={[styles.callTxt, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]}>{t('common.call')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>

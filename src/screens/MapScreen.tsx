@@ -15,6 +15,7 @@ import AreaDetailModal, { AreaDetail } from '../components/modals/AreaDetailModa
 import MapFilterModal, { MapFilters } from '../components/modals/MapFilterModal';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Map'>;
@@ -104,6 +105,7 @@ function scoreColor(score: number) {
 
 export default function MapScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
   const [selectedArea] = useState<AreaDetail>(MILLS50_DETAIL);
@@ -129,27 +131,27 @@ export default function MapScreen({ navigation }: Props) {
   }, []);
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
       {/* ── Search bar ── */}
-      <SafeAreaView edges={['top']} style={styles.searchSafe}>
-        <View style={styles.searchRow}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search-outline" size={18} color="#9CA3AF" style={{ marginRight: 8 }} />
+      <SafeAreaView edges={['top']} style={[styles.searchSafe, { backgroundColor: theme.tabBar }]}>
+        <View style={[styles.searchRow, { backgroundColor: theme.tabBar }]}>
+          <View style={[styles.searchBar, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, borderWidth: 1 }]}>
+            <Ionicons name="search-outline" size={18} color={theme.placeholderColor} style={{ marginRight: 8 }} />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: theme.inputText }]}
               placeholder={t('map.search_placeholder')}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.placeholderColor}
               value={search}
               onChangeText={setSearch}
               autoCorrect={false}
             />
           </View>
           <TouchableOpacity
-            style={styles.filterBtn}
+            style={[styles.filterBtn, { backgroundColor: theme.surfaceModal }]}
             onPress={() => setFilterOpen(true)}
             activeOpacity={0.8}
           >
-            <Ionicons name="options-outline" size={20} color={Colors.indigo} />
+            <Ionicons name="options-outline" size={20} color={theme.isDark ? '#A3C7FF' : Colors.indigo} />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -158,7 +160,7 @@ export default function MapScreen({ navigation }: Props) {
       <View style={styles.mapContainer}>
         <MapboxGL.MapView
           style={StyleSheet.absoluteFillObject}
-          styleURL="mapbox://styles/mapbox/light-v11"
+          styleURL={theme.isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/light-v11"}
           compassEnabled={false}
           scaleBarEnabled={false}
           logoEnabled={false}
@@ -221,20 +223,20 @@ export default function MapScreen({ navigation }: Props) {
 
         {/* ── Bottom info card ── */}
         <TouchableOpacity
-          style={styles.infoCard}
+          style={[styles.infoCard, { backgroundColor: theme.surface, shadowColor: theme.shadowColor }]}
           activeOpacity={0.9}
           onPress={() => setAreaDetailOpen(true)}
         >
           <View style={styles.infoCardLeft}>
-            <Text style={styles.infoAreaName}>{selectedArea.name}</Text>
-            <Text style={styles.infoAreaSub}>
+            <Text style={[styles.infoAreaName, { color: theme.subheading }]}>{selectedArea.name}</Text>
+            <Text style={[styles.infoAreaSub, { color: theme.muted }]}>
               {selectedArea.city}, {selectedArea.state}  •  {t('map.tap_for_details')}
             </Text>
             <View style={styles.infoMeta}>
               <View style={styles.riskDot} />
               <Text style={styles.infoRiskTxt}>{t('map.high_risk')}</Text>
-              <Text style={styles.infoDivider}>  |  </Text>
-              <Text style={styles.infoAlertsTxt}>
+              <Text style={[styles.infoDivider, { color: theme.divider }]}>  |  </Text>
+              <Text style={[styles.infoAlertsTxt, { color: theme.body }]}>
                 {t('map.active_alerts', { count: selectedArea.alerts.length })}
               </Text>
             </View>
@@ -246,8 +248,8 @@ export default function MapScreen({ navigation }: Props) {
       </View>
 
       {/* ── Tab Bar ── */}
-      <SafeAreaView edges={['bottom']} style={styles.tabBarSafe}>
-        <View style={styles.tabBar}>
+      <SafeAreaView edges={['bottom']} style={[styles.tabBarSafe, { backgroundColor: theme.tabBar }]}>
+        <View style={[styles.tabBar, { backgroundColor: theme.tabBar, borderTopColor: theme.tabBarBorder }]}>
           {[
             { icon: 'home-outline' as const, key: 'Home', label: t('tabs.home'), active: false },
             { icon: 'map' as const, key: 'Map', label: t('tabs.map'), active: true },
@@ -267,9 +269,9 @@ export default function MapScreen({ navigation }: Props) {
               }}
             >
               <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : '#9CA3AF'} />
+                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : theme.tabIconInactive} />
               </View>
-              <Text style={[styles.tabLabel, tab.active && styles.tabLabelActive]}>
+              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.isDark ? '#FFFFFF' : Colors.indigo, fontFamily: FontFamily.semiBold }]}>
                 {tab.label}
               </Text>
             </TouchableOpacity>

@@ -50,6 +50,11 @@
   },
   "settings": {
     "title": "Settings",
+    "appearance": "APPEARANCE",
+    "follow_system_label": "Follow System Theme",
+    "follow_system_sub": "Automatically match iOS dark mode setting",
+    "dark_mode_label": "Dark Mode",
+    "dark_mode_sub": "Force dark theme across the app",
     "accessibility": "ACCESSIBILITY",
     "haptic_label": "Haptic Health Alerts",
     "haptic_sub": "Vibration feedback for important health updates",

@@ -9,6 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors, FontFamily, FontSize } from '../../theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface Props {
   visible: boolean;
@@ -17,6 +18,7 @@ interface Props {
 
 export default function HelpModal({ visible, onClose }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
 
   const SECTIONS = [
     { icon: 'home-outline' as const, title: t('help_modal.dashboard_title'), body: t('help_modal.dashboard_body') },
@@ -31,28 +33,28 @@ export default function HelpModal({ visible, onClose }: Props) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
+        <TouchableOpacity activeOpacity={1} style={[styles.sheet, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
           <View style={styles.handle} />
 
           <View style={styles.header}>
-            <Text style={styles.title}>{t('help_modal.title')}</Text>
+            <Text style={[styles.title, { color: theme.heading }]}>{t('help_modal.title')}</Text>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={22} color="#6B7280" />
+              <Ionicons name="close" size={22} color={theme.muted} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.headerSub}>
+          <Text style={[styles.headerSub, { color: theme.muted }]}>
             {t('help_modal.subtitle')}
           </Text>
 
           <ScrollView showsVerticalScrollIndicator={false} style={styles.body}>
             {SECTIONS.map((s, i) => (
               <View key={i} style={styles.section}>
-                <View style={styles.sectionIconWrap}>
-                  <Ionicons name={s.icon} size={20} color={Colors.darkBlue} />
+                <View style={[styles.sectionIconWrap, { backgroundColor: theme.surfaceSecondary }]}>
+                  <Ionicons name={s.icon} size={20} color={theme.isDark ? '#A3C7FF' : Colors.darkBlue} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.sectionTitle}>{s.title}</Text>
-                  <Text style={styles.sectionBody}>{s.body}</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.body }]}>{s.title}</Text>
+                  <Text style={[styles.sectionBody, { color: theme.muted }]}>{s.body}</Text>
                 </View>
               </View>
             ))}

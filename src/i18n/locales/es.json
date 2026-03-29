@@ -50,6 +50,11 @@
   },
   "settings": {
     "title": "Ajustes",
+    "appearance": "APARIENCIA",
+    "follow_system_label": "Tema del Sistema",
+    "follow_system_sub": "Coincidir con la configuración del sistema iOS",
+    "dark_mode_label": "Modo Oscuro",
+    "dark_mode_sub": "Forzar tema oscuro en toda la app",
     "accessibility": "ACCESIBILIDAD",
     "haptic_label": "Alertas Hápticas de Salud",
     "haptic_sub": "Vibración para actualizaciones importantes de salud",

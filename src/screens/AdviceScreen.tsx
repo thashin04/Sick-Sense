@@ -63,25 +63,35 @@ const RECOMMENDATION =
 // ─── Dynamic Header Helper ───────────────────────────────────────────────────
 
 const BG_IMAGES = {
-  day: require('../assets/light-day.png'),
-  afternoon: require('../assets/light-afternoon.png'),
-  evening: require('../assets/light-evening.png'),
+  light: {
+    day: require('../assets/light-day.png'),
+    afternoon: require('../assets/light-afternoon.png'),
+    evening: require('../assets/light-evening.png'),
+  },
+  dark: {
+    day: (() => { try { return require('../assets/dark-day.png'); } catch { return require('../assets/light-day.png'); } })(),
+    afternoon: (() => { try { return require('../assets/dark-afternoon.png'); } catch { return require('../assets/light-afternoon.png'); } })(),
+    evening: (() => { try { return require('../assets/dark-night.png'); } catch { return require('../assets/light-evening.png'); } })(),
+  },
 };
 
-function getHeaderImage() {
+function getHeaderImage(isDark: boolean) {
+  const set = isDark ? BG_IMAGES.dark : BG_IMAGES.light;
   const h = new Date().getHours();
-  if (h >= 5 && h < 12) return BG_IMAGES.day;
-  if (h >= 12 && h < 17) return BG_IMAGES.afternoon;
-  return BG_IMAGES.evening;
+  if (h >= 5 && h < 12) return set.day;
+  if (h >= 12 && h < 17) return set.afternoon;
+  return set.evening;
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 export default function AdviceScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const HEADER_H = 190;
   const [inNetworkOpen, setInNetworkOpen] = React.useState(false);
   const [tips, setTips] = React.useState<ActionableTip[]>(ACTIONABLE_TIPS);
@@ -153,7 +163,7 @@ export default function AdviceScreen({ navigation }: Props) {
   }, []);
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
       {/* ── Scrollable content (header scrolls with page) ── */}
       <ScrollView
         style={styles.scroll}
@@ -163,7 +173,7 @@ export default function AdviceScreen({ navigation }: Props) {
         {/* ── Header ── */}
         <View style={styles.headerContainer}>
           <Image
-            source={getHeaderImage()}
+            source={getHeaderImage(theme.isDark)}
             style={{ width: '100%', height: HEADER_H + 110 }}
             resizeMode="cover"
           />
@@ -171,19 +181,19 @@ export default function AdviceScreen({ navigation }: Props) {
             <View style={[styles.header, { height: HEADER_H }]}>
               <View style={styles.headerTopRow}>
                 <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
-                  <Text style={styles.locationTxt}>{t('common.current_location')}</Text>
-                  <Ionicons name="chevron-down" size={14} color={Colors.indigo} />
+                  <Text style={[styles.locationTxt, { color: theme.heading }]}>{t('common.current_location')}</Text>
+                  <Ionicons name="chevron-down" size={14} color={theme.heading} />
                 </TouchableOpacity>
                 <TouchableOpacity hitSlop={12}>
-                  <Ionicons name="information-circle-outline" size={26} color={Colors.indigo} />
+                  <Ionicons name="information-circle-outline" size={26} color={theme.heading} />
                 </TouchableOpacity>
               </View>
 
               <View style={{ flex: 1 }} />
-              <Text style={styles.pageTitle}>{t('advice.page_title')}</Text>
-              <Text style={styles.pageSubtitle}>
+              <Text style={[styles.pageTitle, { color: theme.heading }]}>{t('advice.page_title')}</Text>
+              <Text style={[styles.pageSubtitle, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]}>
                 "The local risk level is{' '}
-                <Text style={styles.riskWord}>{forecast}</Text>
+                <Text style={[styles.riskWord, { color: theme.heading }]}>{forecast}</Text>
                 {' '}today, Shin."
               </Text>
             </View>
@@ -192,46 +202,46 @@ export default function AdviceScreen({ navigation }: Props) {
 
         <View style={styles.scrollInner}>
         {/* Actionable Tips */}
-        <View style={[styles.card, { marginTop: 32 }]}>
+        <View style={[styles.card, { marginTop: 32, backgroundColor: theme.surface, shadowColor: theme.shadowColor }]}>
           <View style={styles.cardTitleRow}>
-            <Ionicons name="bulb-outline" size={18} color={Colors.indigo} />
-            <Text style={styles.cardTitle}>  {t('advice.tips_title')}</Text>
+            <Ionicons name="bulb-outline" size={18} color={theme.isDark ? '#A3C7FF' : Colors.indigo} />
+            <Text style={[styles.cardTitle, { color: theme.subheading }]}>  {t('advice.tips_title')}</Text>
           </View>
           {tips.map((item, i) => (
             <View
               key={i}
-              style={[styles.tipRow, i < tips.length - 1 && styles.tipRowBorder]}
+              style={[styles.tipRow, i < tips.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.divider }]}
             >
-              <View style={styles.tipIconWrap}>
-                <Ionicons name={item.icon} size={18} color={Colors.indigo} />
+              <View style={[styles.tipIconWrap, { backgroundColor: theme.surfaceSecondary }]}>
+                <Ionicons name={item.icon} size={18} color={theme.isDark ? '#A3C7FF' : Colors.indigo} />
               </View>
-              <Text style={styles.tipText}>{item.tip}</Text>
+              <Text style={[styles.tipText, { color: theme.body }]}>{item.tip}</Text>
             </View>
           ))}
         </View>
 
         {/* Risk Analysis */}
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: theme.surface, shadowColor: theme.shadowColor }]}>
           <View style={styles.cardTitleRow}>
-            <Ionicons name="information-circle-outline" size={18} color={Colors.indigo} />
-            <Text style={styles.cardTitle}>  {t('advice.risk_analysis_title')}</Text>
+            <Ionicons name="information-circle-outline" size={18} color={theme.isDark ? '#A3C7FF' : Colors.indigo} />
+            <Text style={[styles.cardTitle, { color: theme.subheading }]}>  {t('advice.risk_analysis_title')}</Text>
           </View>
 
           {risks.map((item, i) => (
-            <View key={i} style={styles.riskCard}>
+            <View key={i} style={[styles.riskCard, { backgroundColor: theme.surfaceSecondary }]}>
               <View style={styles.riskCardHeader}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.riskName}>{item.name}</Text>
-                  <Text style={styles.riskSubtext}>{item.subtext}</Text>
+                  <Text style={[styles.riskName, { color: theme.body }]}>{item.name}</Text>
+                  <Text style={[styles.riskSubtext, { color: theme.muted }]}>{item.subtext}</Text>
                 </View>
-                <Text style={styles.riskPercent}>{item.percent}%</Text>
+                <Text style={[styles.riskPercent, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]}>{item.percent}%</Text>
               </View>
-              <Text style={styles.riskDesc}>{item.description}</Text>
+              <Text style={[styles.riskDesc, { color: theme.body }]}>{item.description}</Text>
             </View>
           ))}
 
-          <View style={styles.recommendBox}>
-            <Text style={styles.recommendTxt}>
+          <View style={[styles.recommendBox, theme.isDark && { backgroundColor: 'rgba(34,197,94,0.12)', borderLeftColor: '#22C55E' }]}>
+            <Text style={[styles.recommendTxt, theme.isDark && { color: '#86EFAC' }]}>
               <Text style={styles.recommendBold}>Recommendation: </Text>
               {RECOMMENDATION}
             </Text>
@@ -239,12 +249,12 @@ export default function AdviceScreen({ navigation }: Props) {
         </View>
 
         {/* In-Network Care */}
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: theme.surface, shadowColor: theme.shadowColor }]}>
           <View style={styles.cardTitleRow}>
-            <Ionicons name="clipboard-outline" size={18} color={Colors.indigo} />
-            <Text style={styles.cardTitle}>  {t('advice.in_network_title')}</Text>
+            <Ionicons name="clipboard-outline" size={18} color={theme.isDark ? '#A3C7FF' : Colors.indigo} />
+            <Text style={[styles.cardTitle, { color: theme.subheading }]}>  {t('advice.in_network_title')}</Text>
           </View>
-          <Text style={styles.inNetworkSub}>
+          <Text style={[styles.inNetworkSub, { color: theme.muted }]}>
             {t('advice.in_network_sub')}
           </Text>
           <TouchableOpacity style={styles.inNetworkBtn} activeOpacity={0.85} onPress={() => setInNetworkOpen(true)}>
@@ -257,8 +267,8 @@ export default function AdviceScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* ── Tab Bar ── */}
-      <SafeAreaView edges={['bottom']} style={styles.tabBarSafe}>
-        <View style={styles.tabBar}>
+      <SafeAreaView edges={['bottom']} style={[styles.tabBarSafe, { backgroundColor: theme.tabBar }]}>
+        <View style={[styles.tabBar, { backgroundColor: theme.tabBar, borderTopColor: theme.tabBarBorder }]}>
           {[
             { icon: 'home-outline' as const, key: 'Home', label: t('tabs.home'), active: false },
             { icon: 'map-outline' as const, key: 'Map', label: t('tabs.map'), active: false },
@@ -278,9 +288,9 @@ export default function AdviceScreen({ navigation }: Props) {
               }}
             >
               <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : '#9CA3AF'} />
+                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : theme.tabIconInactive} />
               </View>
-              <Text style={[styles.tabLabel, tab.active && styles.tabLabelActive]}>
+              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.isDark ? '#FFFFFF' : Colors.indigo, fontFamily: FontFamily.semiBold }]}>
                 {tab.label}
               </Text>
             </TouchableOpacity>
@@ -300,16 +310,16 @@ export default function AdviceScreen({ navigation }: Props) {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.cloudBlue },
+  root: { flex: 1 },
 
   // Header
   header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, overflow: 'visible' },
   headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   locationPill: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  locationTxt: { fontFamily: FontFamily.semiBold, fontSize: FontSize.md, color: Colors.indigo },
-  pageTitle: { fontFamily: FontFamily.extraBold, fontSize: 32, color: Colors.indigo, marginBottom: 6 },
-  pageSubtitle: { fontFamily: FontFamily.regular, fontSize: FontSize.sm, color: Colors.indigo },
-  riskWord: { fontFamily: FontFamily.bold, fontSize: FontSize.sm, color: Colors.indigo },
+  locationTxt: { fontFamily: FontFamily.semiBold, fontSize: FontSize.md },
+  pageTitle: { fontFamily: FontFamily.extraBold, fontSize: 32, marginBottom: 6 },
+  pageSubtitle: { fontFamily: FontFamily.regular, fontSize: FontSize.sm },
+  riskWord: { fontFamily: FontFamily.bold, fontSize: FontSize.sm },
 
   // Header container — sized by the image (normal flow), content overlaid absolutely
   headerContainer: {},
@@ -321,18 +331,16 @@ const styles = StyleSheet.create({
 
   // Card
   card: {
-    backgroundColor: Colors.white,
     borderRadius: 18,
     padding: 18,
     marginBottom: 20,
-    shadowColor: Colors.indigo,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
   cardTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  cardTitle: { fontFamily: FontFamily.bold, fontSize: FontSize.lg, color: Colors.indigo },
+  cardTitle: { fontFamily: FontFamily.bold, fontSize: FontSize.lg },
 
   // Tips
   tipRow: {
@@ -341,15 +349,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 12,
   },
-  tipRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.lightMidBlue,
-  },
   tipIconWrap: {
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: Colors.cloudBlue,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -357,22 +360,20 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.regular,
     fontSize: FontSize.sm,
-    color: '#374151',
     lineHeight: 20,
   },
 
   // Risk cards
   riskCard: {
-    backgroundColor: Colors.cloudBlue,
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
   },
   riskCardHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  riskName: { fontFamily: FontFamily.bold, fontSize: FontSize.md, color: Colors.black },
-  riskSubtext: { fontFamily: FontFamily.regular, fontSize: FontSize.xs, color: '#6B7280', marginTop: 2 },
-  riskPercent: { fontFamily: FontFamily.extraBold, fontSize: 26, color: Colors.indigo, marginLeft: 8 },
-  riskDesc: { fontFamily: FontFamily.regular, fontSize: FontSize.sm, color: '#374151', lineHeight: 19 },
+  riskName: { fontFamily: FontFamily.bold, fontSize: FontSize.md },
+  riskSubtext: { fontFamily: FontFamily.regular, fontSize: FontSize.xs, marginTop: 2 },
+  riskPercent: { fontFamily: FontFamily.extraBold, fontSize: 26, marginLeft: 8 },
+  riskDesc: { fontFamily: FontFamily.regular, fontSize: FontSize.sm, lineHeight: 19 },
 
   // Recommendation
   recommendBox: {
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
   recommendBold: { fontFamily: FontFamily.bold },
 
   // In-Network Care
-  inNetworkSub: { fontFamily: FontFamily.regular, fontSize: FontSize.sm, color: '#6B7280', marginBottom: 16, lineHeight: 20 },
+  inNetworkSub: { fontFamily: FontFamily.regular, fontSize: FontSize.sm, marginBottom: 16, lineHeight: 20 },
   inNetworkBtn: {
     backgroundColor: Colors.indigo,
     paddingVertical: 17,
@@ -402,14 +403,12 @@ const styles = StyleSheet.create({
   inNetworkBtnTxt: { fontFamily: FontFamily.semiBold, fontSize: FontSize.lg, color: Colors.white },
 
   // Tab bar
-  tabBarSafe: { backgroundColor: Colors.white },
+  tabBarSafe: {},
   tabBar: {
     flexDirection: 'row',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.lightMidBlue,
-    backgroundColor: Colors.white,
   },
   tabItem: { flex: 1, alignItems: 'center', gap: 4 },
   tabIconActive: {
@@ -417,6 +416,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.indigo, alignItems: 'center', justifyContent: 'center',
   },
   tabIconInactive: { width: 48, height: 32, alignItems: 'center', justifyContent: 'center' },
-  tabLabel: { fontFamily: FontFamily.regular, fontSize: 11, color: '#9CA3AF' },
-  tabLabelActive: { fontFamily: FontFamily.semiBold, color: Colors.indigo },
+  tabLabel: { fontFamily: FontFamily.regular, fontSize: 11 },
 });

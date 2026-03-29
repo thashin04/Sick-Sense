@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, FontSize } from '../../theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 export interface MapFilters {
   highRisk: boolean;
@@ -31,6 +32,7 @@ type FilterKey = keyof MapFilters;
 
 export default function MapFilterModal({ visible, filters, onApply, onClose }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
 
   const RISK_ROWS: { key: FilterKey; label: string; color: string }[] = [
     { key: 'highRisk', label: t('map_filter_modal.high_risk'), color: Colors.coral },
@@ -63,24 +65,24 @@ export default function MapFilterModal({ visible, filters, onApply, onClose }: P
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
+        <TouchableOpacity activeOpacity={1} style={[styles.sheet, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
           <View style={styles.handle} />
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>{t('map_filter_modal.title')}</Text>
+            <Text style={[styles.title, { color: theme.heading }]}>{t('map_filter_modal.title')}</Text>
             <TouchableOpacity
               onPress={onClose}
               hitSlop={12}
-              style={styles.closeBtn}
+              style={[styles.closeBtn, { backgroundColor: theme.surfaceSecondary }]}
             >
-              <Ionicons name="close" size={18} color="#6B7280" />
+              <Ionicons name="close" size={18} color={theme.muted} />
             </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Risk Levels */}
-            <Text style={styles.sectionLabel}>{t('map_filter_modal.risk_levels')}</Text>
+            <Text style={[styles.sectionLabel, { color: theme.sectionLabel }]}>{t('map_filter_modal.risk_levels')}</Text>
             {RISK_ROWS.map((row) => (
               <FilterRow
                 key={row.key}
@@ -91,10 +93,10 @@ export default function MapFilterModal({ visible, filters, onApply, onClose }: P
               />
             ))}
 
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
             {/* Location Types */}
-            <Text style={styles.sectionLabel}>{t('map_filter_modal.location_types')}</Text>
+            <Text style={[styles.sectionLabel, { color: theme.sectionLabel }]}>{t('map_filter_modal.location_types')}</Text>
             {LOCATION_ROWS.map((row) => (
               <FilterRow
                 key={row.key}
@@ -129,6 +131,7 @@ function FilterRow({
   onToggle: () => void;
   isLocation?: boolean;
 }) {
+  const theme = useAppTheme();
   return (
     <View style={rowStyles.row}>
       {isLocation ? (
@@ -136,13 +139,13 @@ function FilterRow({
       ) : (
         <View style={[rowStyles.dot, { backgroundColor: dotColor }]} />
       )}
-      <Text style={rowStyles.label}>{label}</Text>
+      <Text style={[rowStyles.label, { color: theme.body }]}>{label}</Text>
       <Switch
         value={value}
         onValueChange={onToggle}
-        trackColor={{ false: Colors.lightMidBlue, true: Colors.indigo }}
+        trackColor={{ false: theme.divider, true: Colors.indigo }}
         thumbColor={Colors.white}
-        ios_backgroundColor={Colors.lightMidBlue}
+        ios_backgroundColor={theme.divider}
       />
     </View>
   );

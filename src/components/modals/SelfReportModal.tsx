@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, FontSize } from '../../theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface Props {
   visible: boolean;
@@ -24,6 +25,7 @@ type LocationType = 'my-location' | 'search-location';
 
 export default function SelfReportModal({ visible, onClose }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const [reportType, setReportType] = useState<ReportType>(null);
   const [locationType, setLocationType] = useState<LocationType>('search-location');
   const [search, setSearch] = useState('');
@@ -101,17 +103,17 @@ export default function SelfReportModal({ visible, onClose }: Props) {
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={handleClose}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <TouchableOpacity activeOpacity={1} style={styles.sheet}>
+          <TouchableOpacity activeOpacity={1} style={[styles.sheet, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
             {/* Header */}
             <View style={styles.sheetHeader}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.sheetTitle}>{t('self_report.title')}</Text>
-                <Text style={styles.sheetSub}>
+                <Text style={[styles.sheetTitle, { color: theme.heading }]}>{t('self_report.title')}</Text>
+                <Text style={[styles.sheetSub, { color: theme.muted }]}>
                   {t('self_report.subtitle')}
                 </Text>
               </View>
               <TouchableOpacity onPress={handleClose} hitSlop={12} style={styles.closeBtn}>
-                <Ionicons name="close" size={22} color="#6B7280" />
+                <Ionicons name="close" size={22} color={theme.muted} />
               </TouchableOpacity>
             </View>
 
@@ -120,39 +122,40 @@ export default function SelfReportModal({ visible, onClose }: Props) {
               {REPORT_OPTIONS.map((opt) => (
                 <TouchableOpacity
                   key={opt.id}
-                  style={[styles.optionCard, reportType === opt.id && styles.optionCardSelected]}
+                  style={[styles.optionCard, { borderColor: theme.border }, reportType === opt.id && [styles.optionCardSelected, { borderColor: theme.isDark ? '#A3C7FF' : Colors.darkBlue }]]}
                   onPress={() => setReportType(opt.id)}
                   activeOpacity={0.8}
                 >
-                  <View style={[styles.optionIcon, { backgroundColor: opt.iconBg }]}>
+                  <View style={[styles.optionIcon, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : opt.iconBg }]}>
                     <Ionicons name={opt.icon} size={22} color={opt.iconColor} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.optionLabel}>{opt.label}</Text>
-                    <Text style={styles.optionSub}>{opt.sub}</Text>
+                    <Text style={[styles.optionLabel, { color: theme.body }]}>{opt.label}</Text>
+                    <Text style={[styles.optionSub, { color: theme.muted }]}>{opt.sub}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
 
               {/* Location */}
-              <Text style={styles.locationTitle}>{t('self_report.location_title')}</Text>
+              <Text style={[styles.locationTitle, { color: theme.subheading }]}>{t('self_report.location_title')}</Text>
               <View style={styles.locationRow}>
                 <TouchableOpacity
                   style={[
                     styles.locationBtn,
-                    locationType === 'my-location' && styles.locationBtnSelected,
+                    { borderColor: theme.border },
+                    locationType === 'my-location' && [styles.locationBtnSelected, { borderColor: theme.isDark ? '#A3C7FF' : Colors.indigo }],
                   ]}
                   onPress={() => setLocationType('my-location')}
                   activeOpacity={0.8}
                 >
-                  <View style={[styles.locationIconWrap, locationType === 'my-location' && styles.locationIconWrapSelected]}>
+                  <View style={[styles.locationIconWrap, { backgroundColor: theme.surfaceSecondary }, locationType === 'my-location' && [styles.locationIconWrapSelected, { backgroundColor: theme.isDark ? '#A3C7FF' : Colors.indigo }]]}>
                     <Ionicons
                       name="location-outline"
                       size={22}
-                      color={locationType === 'my-location' ? Colors.white : Colors.indigo}
+                      color={locationType === 'my-location' ? (theme.isDark ? Colors.indigo : Colors.white) : (theme.isDark ? '#A3C7FF' : Colors.indigo)}
                     />
                   </View>
-                  <Text style={[styles.locationBtnTxt, locationType === 'my-location' && styles.locationBtnTxtSelected]}>
+                  <Text style={[styles.locationBtnTxt, { color: theme.body }, locationType === 'my-location' && [styles.locationBtnTxtSelected, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]]}>
                     {t('self_report.my_location')}
                   </Text>
                 </TouchableOpacity>
@@ -160,31 +163,32 @@ export default function SelfReportModal({ visible, onClose }: Props) {
                 <TouchableOpacity
                   style={[
                     styles.locationBtn,
-                    locationType === 'search-location' && styles.locationBtnSelected,
+                    { borderColor: theme.border },
+                    locationType === 'search-location' && [styles.locationBtnSelected, { borderColor: theme.isDark ? '#A3C7FF' : Colors.indigo }],
                   ]}
                   onPress={() => setLocationType('search-location')}
                   activeOpacity={0.8}
                 >
-                  <View style={[styles.locationIconWrap, locationType === 'search-location' && styles.locationIconWrapSelected]}>
+                  <View style={[styles.locationIconWrap, { backgroundColor: theme.surfaceSecondary }, locationType === 'search-location' && [styles.locationIconWrapSelected, { backgroundColor: theme.isDark ? '#A3C7FF' : Colors.indigo }]]}>
                     <Ionicons
                       name="search-outline"
                       size={22}
-                      color={locationType === 'search-location' ? Colors.white : Colors.indigo}
+                      color={locationType === 'search-location' ? (theme.isDark ? Colors.indigo : Colors.white) : (theme.isDark ? '#A3C7FF' : Colors.indigo)}
                     />
                   </View>
-                  <Text style={[styles.locationBtnTxt, locationType === 'search-location' && styles.locationBtnTxtSelected]}>
+                  <Text style={[styles.locationBtnTxt, { color: theme.body }, locationType === 'search-location' && [styles.locationBtnTxtSelected, { color: theme.isDark ? '#A3C7FF' : Colors.indigo }]]}>
                     {t('self_report.search_location')}
                   </Text>
                 </TouchableOpacity>
               </View>
 
               {locationType === 'search-location' && (
-                <View style={styles.searchWrap}>
-                  <Ionicons name="search-outline" size={16} color="#9CA3AF" style={{ marginRight: 8 }} />
+                <View style={[styles.searchWrap, { borderColor: theme.inputBorder, backgroundColor: theme.inputBg }]}>
+                  <Ionicons name="search-outline" size={16} color={theme.placeholderColor} style={{ marginRight: 8 }} />
                   <TextInput
-                    style={styles.searchInput}
+                    style={[styles.searchInput, { color: theme.inputText }]}
                     placeholder={t('self_report.search_placeholder')}
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.placeholderColor}
                     value={search}
                     onChangeText={setSearch}
                     autoCorrect={false}
@@ -195,12 +199,12 @@ export default function SelfReportModal({ visible, onClose }: Props) {
 
             {/* Submit */}
             <TouchableOpacity
-              style={[styles.continueBtn, (!canContinue || isSubmitting) && styles.continueBtnDisabled]}
+              style={[styles.continueBtn, (!canContinue || isSubmitting) && [styles.continueBtnDisabled, { backgroundColor: theme.surfaceSecondary }]]}
               disabled={!canContinue || isSubmitting}
               activeOpacity={0.85}
               onPress={handleSubmit}
             >
-              <Text style={[styles.continueTxt, (!canContinue || isSubmitting) && styles.continueTxtDisabled]}>
+              <Text style={[styles.continueTxt, (!canContinue || isSubmitting) && [styles.continueTxtDisabled, { color: theme.muted }]]}>
                 {isSubmitting ? 'Submitting...' : t('common.submit')}
               </Text>
             </TouchableOpacity>

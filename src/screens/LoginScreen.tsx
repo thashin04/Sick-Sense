@@ -21,12 +21,14 @@ import CloudHeader from '../components/CloudHeader';
 import GoogleIcon from '../components/GoogleIcon';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Login'>;
 };
 
 export default function LoginScreen({ navigation }: Props) {
+  const theme = useAppTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -51,8 +53,8 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <StatusBar style="light" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom']}>
+      <StatusBar style={theme.statusBar} />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -67,10 +69,10 @@ export default function LoginScreen({ navigation }: Props) {
           <CloudHeader />
 
           <View style={styles.body}>
-            <Text style={styles.title}>Log In</Text>
-            <Text style={styles.subtitle}>Welcome to SickSense!</Text>
+            <Text style={[styles.title, { color: theme.heading }]}>Log In</Text>
+            <Text style={[styles.subtitle, { color: theme.muted }]}>Welcome to SickSense!</Text>
 
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
               <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
                 <GoogleIcon size={20} />
                 <Text style={styles.socialTxt}>Login with Google</Text>
@@ -87,25 +89,25 @@ export default function LoginScreen({ navigation }: Props) {
                 <View style={styles.dividerLine} />
               </View>
 
-              <Text style={styles.label}>Email</Text>
+              <Text style={[styles.label, { color: theme.labelText }]}>Email</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.inputText }]}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholderTextColor="#B0B8C8"
+                placeholderTextColor={theme.placeholderColor}
               />
 
-              <Text style={styles.label}>Password</Text>
+              <Text style={[styles.label, { color: theme.labelText }]}>Password</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.inputText }]}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
                 autoCapitalize="none"
-                placeholderTextColor="#B0B8C8"
+                placeholderTextColor={theme.placeholderColor}
               />
 
               <TouchableOpacity style={styles.forgotWrap}>
@@ -126,7 +128,7 @@ export default function LoginScreen({ navigation }: Props) {
               </TouchableOpacity>
 
               <View style={styles.footerRow}>
-                <Text style={styles.footerTxt}>Don't have an account? </Text>
+                <Text style={[styles.footerTxt, { color: theme.body }]}>Don't have an account? </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
                   <Text style={styles.linkTxt}>Sign up</Text>
                 </TouchableOpacity>
@@ -140,7 +142,7 @@ export default function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.cloudBlue },
+  safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: { paddingBottom: 32 },
   body: { paddingHorizontal: 20, paddingTop: 20 },

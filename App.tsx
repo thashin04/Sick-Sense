@@ -13,6 +13,7 @@ import {
   PlusJakartaSans_800ExtraBold,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import AppNavigator from './src/navigation/AppNavigator';
+import { ThemeProvider } from './src/context/ThemeContext';
 import './src/i18n';
 
 SplashScreen.preventAutoHideAsync();
@@ -32,5 +33,9 @@ export default function App() {
 
   if (!fontsLoaded) return null;
 
-  return <AppNavigator />;
+  return (
+    <ThemeProvider>
+      <AppNavigator />
+    </ThemeProvider>
+  );
 }

@@ -9,6 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors, FontFamily, FontSize } from '../../theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface Props {
   visible: boolean;
@@ -20,30 +21,31 @@ interface Props {
 
 export default function TranscriptModal({ visible, onClose, transcript, duration }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   console.log('[TranscriptModal] Rendering. Transcript length:', transcript?.length, 'Visible:', visible);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
           <View style={styles.handle} />
 
           <View style={styles.header}>
             <View>
-              <Text style={styles.title}>{t('transcript_modal.title')}</Text>
-              <Text style={styles.meta}>{t('transcript_modal.meta', { duration })}</Text>
+              <Text style={[styles.title, { color: theme.heading }]}>{t('transcript_modal.title')}</Text>
+              <Text style={[styles.meta, { color: theme.muted }]}>{t('transcript_modal.meta', { duration })}</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={22} color="#6B7280" />
+              <Ionicons name="close" size={22} color={theme.muted} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
-            showsVerticalScrollIndicator={true} 
+          <ScrollView
+            showsVerticalScrollIndicator={true}
             style={styles.body}
           >
-            <Text style={styles.transcriptText}>
+            <Text style={[styles.transcriptText, { color: theme.body }]}>
               {transcript && transcript.trim() ? transcript.trim() : "The daily health report transcript is currently being generated. Please check back in a few moments."}
             </Text>
           </ScrollView>
