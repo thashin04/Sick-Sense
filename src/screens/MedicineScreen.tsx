@@ -7,6 +7,7 @@ import IntakeLayout from '../components/IntakeLayout';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Medicine'>;
@@ -26,6 +27,7 @@ const MAX_SELECT = 4;
 
 export default function MedicineScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch] = useState('');
 
@@ -71,7 +73,7 @@ export default function MedicineScreen({ navigation }: Props) {
             key={med.id}
             style={[
               styles.card,
-              isSelected && styles.cardSelected,
+              { backgroundColor: theme.surface, borderColor: isSelected ? theme.primary : theme.border },
               isDisabled && styles.cardDisabled,
             ]}
             onPress={() => toggle(med.id)}
@@ -79,8 +81,8 @@ export default function MedicineScreen({ navigation }: Props) {
             disabled={isDisabled}
           >
             <View style={styles.labelWrap}>
-              <Text style={styles.medName}>{med.name}</Text>
-              <Text style={styles.medCategory}>{med.category}</Text>
+              <Text style={[styles.medName, { color: theme.body }]}>{med.name}</Text>
+              <Text style={[styles.medCategory, { color: theme.muted }]}>{med.category}</Text>
             </View>
             <View style={[styles.check, !isSelected && { backgroundColor: 'transparent' }]}>
               {isSelected && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}

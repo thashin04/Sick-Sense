@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import CloudHeader from './CloudHeader';
 import { Colors, FontFamily, FontSize } from '../theme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface Props {
   title: string;
@@ -34,11 +35,12 @@ export default function TutorialLayout({
   onSkip,
 }: Props) {
   const { height } = useWindowDimensions();
+  const theme = useAppTheme();
   const cardHeight = height * 0.42;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <StatusBar style="light" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom']}>
+      <StatusBar style={theme.statusBar} />
 
       {/* Header + content scroll together */}
       <ScrollView
@@ -51,12 +53,12 @@ export default function TutorialLayout({
         <View style={styles.body}>
           {onSkip && (
             <TouchableOpacity style={styles.skipWrap} onPress={onSkip} hitSlop={12}>
-              <Text style={styles.skipTxt}>Skip  ›</Text>
+              <Text style={[styles.skipTxt, { color: theme.primary }]}>Skip  ›</Text>
             </TouchableOpacity>
           )}
 
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <Text style={[styles.title, { color: theme.heading }]}>{title}</Text>
+          <Text style={[styles.subtitle, { color: theme.body }]}>{subtitle}</Text>
 
           <View style={[styles.card, { height: cardHeight }]}>{cardContent}</View>
 
@@ -64,7 +66,7 @@ export default function TutorialLayout({
             {Array.from({ length: totalSteps }).map((_, i) => (
               <View
                 key={i}
-                style={[styles.dot, i === currentStep - 1 ? styles.dotActive : styles.dotInactive]}
+                style={[styles.dot, i === currentStep - 1 ? { backgroundColor: theme.primary } : { backgroundColor: theme.border }]}
               />
             ))}
           </View>
@@ -72,18 +74,18 @@ export default function TutorialLayout({
       </ScrollView>
 
       {/* Back / Next stay fixed at bottom */}
-      <View style={styles.btnRow}>
+      <View style={[styles.btnRow, { backgroundColor: theme.background }]}>
         <TouchableOpacity
-          style={styles.btnBack}
+          style={[styles.btnBack, { backgroundColor: theme.surface, borderColor: theme.border }]}
           onPress={onBack}
           activeOpacity={0.8}
           disabled={!onBack}
         >
-          <Text style={styles.btnBackTxt}>Back</Text>
+          <Text style={[styles.btnBackTxt, { color: theme.heading }]}>Back</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnNext} onPress={onNext} activeOpacity={0.85}>
-          <Text style={styles.btnNextTxt}>Next</Text>
+        <TouchableOpacity style={[styles.btnNext, { backgroundColor: theme.primary, shadowColor: theme.primary }]} onPress={onNext} activeOpacity={0.85}>
+          <Text style={[styles.btnNextTxt, { color: theme.primaryText }]}>Next</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -91,7 +93,7 @@ export default function TutorialLayout({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.cloudBlue },
+  safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: { paddingBottom: 8 },
   body: { paddingHorizontal: 20, paddingTop: 20 },
@@ -134,8 +136,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dot: { height: 6, borderRadius: 3, width: 60 },
-  dotActive: { backgroundColor: Colors.indigo },
-  dotInactive: { backgroundColor: Colors.lightMidBlue },
+  dotActive: {},
+  dotInactive: {},
 
   btnRow: {
     flexDirection: 'row',
@@ -143,29 +145,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 16,
-    backgroundColor: Colors.cloudBlue,
   },
   btnBack: {
     flex: 2,
     paddingVertical: 17,
     borderRadius: 50,
     alignItems: 'center',
-    backgroundColor: Colors.white,
     borderWidth: 1.5,
-    borderColor: Colors.lightMidBlue,
   },
   btnBackTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.lg,
-    color: Colors.indigo,
   },
   btnNext: {
     flex: 3,
     paddingVertical: 17,
     borderRadius: 50,
     alignItems: 'center',
-    backgroundColor: Colors.indigo,
-    shadowColor: Colors.indigo,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -174,6 +170,5 @@ const styles = StyleSheet.create({
   btnNextTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.lg,
-    color: Colors.white,
   },
 });

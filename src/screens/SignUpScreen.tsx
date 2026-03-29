@@ -53,7 +53,7 @@ export default function SignUpScreen({ navigation }: Props) {
       const response = await signupUser(email, password, name);
       // Save backend user reference
       await AsyncStorage.setItem('@user_auth', JSON.stringify(response.user));
-      navigation.navigate('Language');
+      navigation.navigate('Language', { fromOnboarding: true });
     } catch (error: any) {
       Alert.alert('Sign Up Failed', error.message);
     } finally {
@@ -82,14 +82,14 @@ export default function SignUpScreen({ navigation }: Props) {
             <Text style={[styles.subtitle, { color: theme.muted }]}>Join SickSense!</Text>
 
             <View style={[styles.card, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
-              <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
+              <TouchableOpacity style={[styles.socialBtn, { borderColor: theme.border }]} activeOpacity={0.8}>
                 <GoogleIcon size={20} />
-                <Text style={styles.socialTxt}>Sign up with Google</Text>
+                <Text style={[styles.socialTxt, { color: theme.heading }]}>Sign up with Google</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
-                <FontAwesome name="apple" size={22} color="#000" />
-                <Text style={styles.socialTxt}>Sign up with Apple</Text>
+              <TouchableOpacity style={[styles.socialBtn, { borderColor: theme.border }]} activeOpacity={0.8}>
+                <FontAwesome name="apple" size={22} color={theme.heading} />
+                <Text style={[styles.socialTxt, { color: theme.heading }]}>Sign up with Apple</Text>
               </TouchableOpacity>
 
               <View style={styles.divider}>
@@ -150,15 +150,15 @@ export default function SignUpScreen({ navigation }: Props) {
               </View>
 
               <TouchableOpacity
-                style={styles.primaryBtn}
+                style={[styles.primaryBtn, { backgroundColor: theme.primary, shadowColor: theme.primary }]}
                 activeOpacity={0.85}
                 onPress={handleSignup}
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#FFF" />
+                  <ActivityIndicator color={theme.primaryText} />
                 ) : (
-                  <Text style={styles.primaryTxt}>Sign Up</Text>
+                  <Text style={[styles.primaryTxt, { color: theme.primaryText }]}>Sign Up</Text>
                 )}
               </TouchableOpacity>
 
@@ -256,12 +256,10 @@ const styles = StyleSheet.create({
   inputWithIcon: { marginBottom: 0, paddingRight: 48 },
   eyeBtn: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
   primaryBtn: {
-    backgroundColor: Colors.indigo,
     paddingVertical: 17,
     borderRadius: 50,
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: Colors.indigo,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -270,7 +268,6 @@ const styles = StyleSheet.create({
   primaryTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.lg,
-    color: '#FFFFFF',
   },
   footerRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   footerTxt: {

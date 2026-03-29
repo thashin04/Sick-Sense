@@ -74,14 +74,14 @@ export default function LoginScreen({ navigation }: Props) {
             <Text style={[styles.subtitle, { color: theme.muted }]}>Welcome to SickSense!</Text>
 
             <View style={[styles.card, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
-              <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
+              <TouchableOpacity style={[styles.socialBtn, { borderColor: theme.border }]} activeOpacity={0.8}>
                 <GoogleIcon size={20} />
-                <Text style={styles.socialTxt}>Login with Google</Text>
+                <Text style={[styles.socialTxt, { color: theme.heading }]}>Login with Google</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
-                <FontAwesome name="apple" size={22} color="#000" />
-                <Text style={styles.socialTxt}>Login with Apple</Text>
+              <TouchableOpacity style={[styles.socialBtn, { borderColor: theme.border }]} activeOpacity={0.8}>
+                <FontAwesome name="apple" size={22} color={theme.heading} />
+                <Text style={[styles.socialTxt, { color: theme.heading }]}>Login with Apple</Text>
               </TouchableOpacity>
 
               <View style={styles.divider}>
@@ -120,16 +120,16 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text style={styles.forgotTxt}>Forgot Password?</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={styles.primaryBtn} 
+              <TouchableOpacity
+                style={[styles.primaryBtn, { backgroundColor: theme.primary, shadowColor: theme.primary }]}
                 activeOpacity={0.85}
                 onPress={handleLogin}
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#FFF" />
+                  <ActivityIndicator color={theme.primaryText} />
                 ) : (
-                  <Text style={styles.primaryTxt}>Login</Text>
+                  <Text style={[styles.primaryTxt, { color: theme.primaryText }]}>Login</Text>
                 )}
               </TouchableOpacity>
 
@@ -234,12 +234,10 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   primaryBtn: {
-    backgroundColor: Colors.indigo,
     paddingVertical: 17,
     borderRadius: 50,
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: Colors.indigo,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -248,7 +246,6 @@ const styles = StyleSheet.create({
   primaryTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.lg,
-    color: '#FFFFFF',
   },
   footerRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   footerTxt: {

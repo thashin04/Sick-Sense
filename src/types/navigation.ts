@@ -2,7 +2,7 @@ export type RootStackParamList = {
   Landing: undefined;
   Login: undefined;
   SignUp: undefined;
-  Language: undefined;
+  Language: { fromOnboarding?: boolean } | undefined;
   Medicine: undefined;
   InsuranceProvider: undefined;
   Tutorial: undefined;

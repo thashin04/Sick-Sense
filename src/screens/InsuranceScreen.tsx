@@ -8,6 +8,7 @@ import IntakeLayout from '../components/IntakeLayout';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'InsuranceProvider'>;
@@ -29,6 +30,7 @@ const PROVIDERS = [
 
 export default function InsuranceScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const [selected, setSelected] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -94,11 +96,11 @@ export default function InsuranceScreen({ navigation }: Props) {
         return (
           <TouchableOpacity
             key={provider.id}
-            style={[styles.card, isSelected && styles.cardSelected]}
+            style={[styles.card, { backgroundColor: theme.surface, borderColor: isSelected ? theme.primary : theme.border }]}
             onPress={() => setSelected(isSelected ? null : provider.id)}
             activeOpacity={0.8}
           >
-            <Text style={styles.providerName}>{provider.name}</Text>
+            <Text style={[styles.providerName, { color: theme.body }]}>{provider.name}</Text>
             <View style={[styles.check, !isSelected && { backgroundColor: 'transparent' }]}>
               {isSelected && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
             </View>

@@ -350,10 +350,10 @@ export default function MapScreen({ navigation }: Props) {
                 }
               }}
             >
-              <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : theme.tabIconInactive} />
+              <View style={[tab.active ? styles.tabIconActive : styles.tabIconInactive, tab.active && { backgroundColor: theme.primary }]}>
+                <Ionicons name={tab.icon} size={22} color={tab.active ? theme.primaryText : theme.tabIconInactive} />
               </View>
-              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.isDark ? '#FFFFFF' : Colors.indigo, fontFamily: FontFamily.semiBold }]}>
+              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.primary, fontFamily: FontFamily.semiBold }]}>
                 {tab.label}
               </Text>
             </TouchableOpacity>

@@ -28,10 +28,6 @@ const STEPS: Step[] = [
     subtitle: 'Health Reports',
     image: null, // TODO: replace with require('../assets/tutorial-reports.png')
   },
-  {
-    subtitle: 'Self Reporting',
-    image: null, // TODO: replace with require('../assets/tutorial-self-report.png')
-  },
 ];
 
 export default function TutorialScreen({ navigation }: Props) {

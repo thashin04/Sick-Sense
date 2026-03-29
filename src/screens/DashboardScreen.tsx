@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,9 +20,11 @@ import { Image } from 'react-native';
 import SelfReportModal from '../components/modals/SelfReportModal';
 import TranscriptModal from '../components/modals/TranscriptModal';
 import HelpModal from '../components/modals/HelpModal';
+import CityPickerModal from '../components/modals/CityPickerModal';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { useLocation } from '../context/LocationContext';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Dashboard'>;
@@ -116,21 +119,47 @@ function otcStatusColor(status: OtcItem['status']) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function Waveform() {
-  const bars = [3, 6, 10, 7, 14, 9, 12, 5, 8, 14, 6, 10, 8, 13, 5, 9, 7, 12, 6, 4];
+const WAVE_PEAKS = [6, 12, 18, 10, 22, 14, 20, 8, 24, 16, 12, 20, 8, 22, 12, 18, 8, 16, 12, 6];
+
+function AnimatedWaveform({ isPlaying }: { isPlaying: boolean }) {
+  const anims = useRef(WAVE_PEAKS.map(() => new Animated.Value(4))).current;
+
+  useEffect(() => {
+    if (isPlaying) {
+      const loops = anims.map((anim, i) =>
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(anim, { toValue: WAVE_PEAKS[i], duration: 250 + i * 15, useNativeDriver: false }),
+            Animated.timing(anim, { toValue: 4,             duration: 250 + i * 15, useNativeDriver: false }),
+          ])
+        )
+      );
+      loops.forEach(l => l.start());
+      return () => loops.forEach(l => l.stop());
+    } else {
+      anims.forEach(anim =>
+        Animated.timing(anim, { toValue: 4, duration: 150, useNativeDriver: false }).start()
+      );
+    }
+  }, [isPlaying]);
+
   return (
-    <View style={waveStyles.row}>
-      {bars.map((h, i) => (
-        <View key={i} style={[waveStyles.bar, { height: h }]} />
+    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 2, height: 28 }}>
+      {anims.map((anim, i) => (
+        <Animated.View
+          key={i}
+          style={{
+            flex: 1,
+            height: anim,
+            borderRadius: 2,
+            backgroundColor: Colors.babyBlue,
+            opacity: isPlaying ? 1 : 0.4,
+          }}
+        />
       ))}
     </View>
   );
 }
-
-const waveStyles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 3, flex: 1 },
-  bar: { width: 3, borderRadius: 2, backgroundColor: Colors.lightMidBlue },
-});
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
@@ -140,9 +169,11 @@ export default function DashboardScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const HEADER_H = 250;
 
+  const { selectedCity } = useLocation();
   const [selfReportOpen, setSelfReportOpen] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [cityPickerOpen, setCityPickerOpen] = useState(false);
 
   const [riskLevels, setRiskLevels] = useState<RiskLevel[]>(RISK_LEVELS);
   const [otcItems, setOtcItems] = useState<OtcItem[]>(OTC_ITEMS);
@@ -153,7 +184,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const [quickTip, setQuickTip] = useState(QUICK_TIP);
   
   // Modern Expo Audio Player (Canary 55)
-  const player = useAudioPlayer('http://localhost:8000/api/city/Tampa/audio-report');
+  const player = useAudioPlayer(`http://localhost:8000/api/city/${selectedCity}/audio-report`);
   const status = useAudioPlayerStatus(player);
 
   useEffect(() => {
@@ -203,8 +234,8 @@ export default function DashboardScreen({ navigation }: Props) {
 
         // Fetch summary and report in parallel for better performance and reliability
         const [sumRes, repRes] = await Promise.all([
-          fetch('http://localhost:8000/api/city/Tampa/summary'),
-          fetch('http://localhost:8000/api/city/Tampa/daily-report')
+          fetch(`http://localhost:8000/api/city/${selectedCity}/summary`),
+          fetch(`http://localhost:8000/api/city/${selectedCity}/daily-report`)
         ]).catch(err => {
           console.error('[Dashboard] Parallel fetch failed:', err);
           return [null, null];
@@ -306,8 +337,8 @@ export default function DashboardScreen({ navigation }: Props) {
             <View style={[styles.header, { height: HEADER_H }]}>
               {/* Top row */}
               <View style={styles.headerTopRow}>
-                <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
-                  <Text style={[styles.locationTxt, { color: theme.heading }]}>{t('common.current_location')}</Text>
+                <TouchableOpacity style={styles.locationPill} activeOpacity={0.7} onPress={() => setCityPickerOpen(true)}>
+                  <Text style={[styles.locationTxt, { color: theme.heading }]}>{selectedCity}</Text>
                   <Ionicons name="chevron-down" size={14} color={theme.heading} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setHelpOpen(true)} hitSlop={12}>
@@ -331,7 +362,7 @@ export default function DashboardScreen({ navigation }: Props) {
           <Text style={[styles.cardTitle, { color: theme.subheading }]}>{t('dashboard.daily_report_title')}</Text>
           <View style={styles.playerRow}>
             <TouchableOpacity
-              style={styles.playBtn}
+              style={[styles.playBtn, { backgroundColor: theme.primary }]}
               activeOpacity={0.7}
             onPress={() => {
               if (status.playing) {
@@ -343,21 +374,11 @@ export default function DashboardScreen({ navigation }: Props) {
               }
             }}
           >
-            <Ionicons name={(status.playing) ? "pause" : "play"} size={28} color={Colors.white} />
+            <Ionicons name={(status.playing) ? "pause" : "play"} size={28} color={theme.primaryText} />
           </TouchableOpacity>
 
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <View style={styles.audioWaveform}>
-              {[1, 0.7, 0.9, 0.5, 0.8, 0.4, 0.6, 0.9, 0.5, 0.7, 0.4].map((h, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.audioBar,
-                    { height: 16 * h, opacity: status.playing ? 1 : 0.3 }
-                  ]}
-                />
-              ))}
-            </View>
+            <AnimatedWaveform isPlaying={status.playing} />
             {status.isBuffering && (
               <Text style={{ fontSize: 10, color: '#5582F3', marginTop: 4 }}>Buffering AI Voice...</Text>
             )}
@@ -380,11 +401,11 @@ export default function DashboardScreen({ navigation }: Props) {
             {t('dashboard.self_report_sub')}
           </Text>
           <TouchableOpacity
-            style={styles.reportBtn}
+            style={[styles.reportBtn, { backgroundColor: theme.primary }]}
             onPress={() => setSelfReportOpen(true)}
             activeOpacity={0.85}
           >
-            <Text style={styles.reportBtnTxt}>{t('dashboard.report_btn')}</Text>
+            <Text style={[styles.reportBtnTxt, { color: theme.primaryText }]}>{t('dashboard.report_btn')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -471,10 +492,10 @@ export default function DashboardScreen({ navigation }: Props) {
                 }
               }}
             >
-              <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : theme.tabIconInactive} />
+              <View style={[tab.active ? styles.tabIconActive : styles.tabIconInactive, tab.active && { backgroundColor: theme.primary }]}>
+                <Ionicons name={tab.icon} size={22} color={tab.active ? theme.primaryText : theme.tabIconInactive} />
               </View>
-              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.isDark ? '#FFFFFF' : Colors.indigo, fontFamily: FontFamily.semiBold }]}>
+              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.primary, fontFamily: FontFamily.semiBold }]}>
                 {tab.label}
               </Text>
             </TouchableOpacity>
@@ -491,6 +512,7 @@ export default function DashboardScreen({ navigation }: Props) {
         duration={audioDuration}
       />
       <HelpModal visible={helpOpen} onClose={() => setHelpOpen(false)} />
+      <CityPickerModal visible={cityPickerOpen} onClose={() => setCityPickerOpen(false)} />
     </View>
   );
 }

@@ -69,11 +69,11 @@ function SpeedSlider({ value, onChange }: { value: number; onChange: (v: number)
         {...panResponder.panHandlers}
       >
         {/* Filled portion */}
-        <View style={[sliderStyles.fill, { width: `${progress * 100}%` }]} />
+        <View style={[sliderStyles.fill, { width: `${progress * 100}%`, backgroundColor: theme.primary }]} />
         {/* Thumb */}
         {trackWidth > 0 && (
           <View
-            style={[sliderStyles.thumb, { left: progress * trackWidth - THUMB_SIZE / 2, borderColor: theme.isDark ? '#A3C7FF' : Colors.indigo, shadowColor: theme.shadowColor }]}
+            style={[sliderStyles.thumb, { left: progress * trackWidth - THUMB_SIZE / 2, borderColor: theme.primary, shadowColor: theme.shadowColor }]}
           />
         )}
       </View>
@@ -164,8 +164,8 @@ function SettingToggleRow({
       <Switch
         value={value}
         onValueChange={onToggle}
-        trackColor={{ false: theme.divider, true: Colors.indigo }}
-        thumbColor={Colors.white}
+        trackColor={{ false: theme.divider, true: theme.primary }}
+        thumbColor={theme.primaryText}
         ios_backgroundColor={theme.divider}
       />
     </View>
@@ -446,10 +446,10 @@ export default function SettingsScreen({ navigation }: Props) {
                 }
               }}
             >
-              <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : theme.tabIconInactive} />
+              <View style={[tab.active ? styles.tabIconActive : styles.tabIconInactive, tab.active && { backgroundColor: theme.primary }]}>
+                <Ionicons name={tab.icon} size={22} color={tab.active ? theme.primaryText : theme.tabIconInactive} />
               </View>
-              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.isDark ? '#FFFFFF' : Colors.indigo, fontFamily: FontFamily.semiBold }]}>
+              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.primary, fontFamily: FontFamily.semiBold }]}>
                 {tab.label}
               </Text>
             </TouchableOpacity>

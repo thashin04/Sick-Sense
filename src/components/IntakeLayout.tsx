@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import CloudHeader from './CloudHeader';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface Props {
   title: string;
@@ -38,9 +39,10 @@ export default function IntakeLayout({
   children,
 }: Props) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <StatusBar style="light" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom']}>
+      <StatusBar style={theme.statusBar} />
 
       {/* ── Sticky header ── */}
       <CloudHeader />
@@ -48,22 +50,22 @@ export default function IntakeLayout({
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity style={styles.back} onPress={onBack} hitSlop={12}>
-            <Ionicons name="chevron-back" size={18} color={Colors.darkBlue} />
-            <Text style={styles.backTxt}>{t('common.back')}</Text>
+            <Ionicons name="chevron-back" size={18} color={theme.heading} />
+            <Text style={[styles.backTxt, { color: theme.heading }]}>{t('common.back')}</Text>
           </TouchableOpacity>
         )}
 
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <Text style={[styles.title, { color: theme.heading }]}>{title}</Text>
+        <Text style={[styles.subtitle, { color: theme.muted }]}>{subtitle}</Text>
 
-        <View style={styles.searchWrap}>
-          <Ionicons name="search" size={16} color="#9CA3AF" style={styles.searchIcon} />
+        <View style={[styles.searchWrap, { backgroundColor: theme.surface, shadowColor: theme.shadowColor }]}>
+          <Ionicons name="search" size={16} color={theme.muted} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: theme.body }]}
             placeholder={searchPlaceholder}
             value={searchValue}
             onChangeText={onSearch}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={theme.muted}
             autoCorrect={false}
             autoCapitalize="none"
           />
@@ -81,9 +83,9 @@ export default function IntakeLayout({
       </ScrollView>
 
       {/* ── Fixed button ── */}
-      <View style={styles.btnWrap}>
-        <TouchableOpacity style={styles.btn} onPress={onButton} activeOpacity={0.85}>
-          <Text style={styles.btnTxt}>{buttonLabel}</Text>
+      <View style={[styles.btnWrap, { backgroundColor: theme.background }]}>
+        <TouchableOpacity style={[styles.btn, { backgroundColor: theme.primary, shadowColor: theme.primary }]} onPress={onButton} activeOpacity={0.85}>
+          <Text style={[styles.btnTxt, { color: theme.primaryText }]}>{buttonLabel}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -91,7 +93,7 @@ export default function IntakeLayout({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.cloudBlue },
+  safe: { flex: 1 },
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
@@ -121,12 +123,10 @@ const styles = StyleSheet.create({
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderRadius: 50,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 14,
-    shadowColor: '#1E1C61',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -137,7 +137,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.regular,
     fontSize: FontSize.md,
-    color: '#111827',
   },
   list: { flex: 1 },
   listContent: {
@@ -148,14 +147,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 16,
-    backgroundColor: Colors.cloudBlue,
   },
   btn: {
-    backgroundColor: Colors.indigo,
     paddingVertical: 17,
     borderRadius: 50,
     alignItems: 'center',
-    shadowColor: Colors.indigo,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -164,6 +160,5 @@ const styles = StyleSheet.create({
   btnTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.lg,
-    color: '#FFFFFF',
   },
 });

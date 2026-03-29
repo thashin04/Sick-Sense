@@ -14,6 +14,7 @@ import {
 } from '@expo-google-fonts/plus-jakarta-sans';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
+import { LocationProvider } from './src/context/LocationContext';
 import './src/i18n';
 
 SplashScreen.preventAutoHideAsync();
@@ -35,7 +36,9 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <AppNavigator />
+      <LocationProvider>
+        <AppNavigator />
+      </LocationProvider>
     </ThemeProvider>
   );
 }

@@ -43,6 +43,10 @@ export function useAppTheme() {
     shadowColor:        isDark ? 'transparent'        : Colors.indigo,
     shadowOpacity:      isDark ? 0                    : 0.06,
 
+    // ── Primary action color ─────────────────────────────────
+    primary:            isDark ? Colors.sunlight      : Colors.indigo,
+    primaryText:        isDark ? Colors.indigo        : Colors.white,
+
     // ── Status bar ───────────────────────────────────────────
     statusBar:          (isDark ? 'light' : 'dark') as 'light' | 'dark',
   } as const;

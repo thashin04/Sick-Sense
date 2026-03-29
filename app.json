@@ -23,6 +23,12 @@
       "expo-font",
       "expo-audio",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "SickSense uses your location to show local health data for your city."
+        }
+      ],
+      [
         "@rnmapbox/maps",
         {
           "RNMapboxMapsImpl": "mapbox"

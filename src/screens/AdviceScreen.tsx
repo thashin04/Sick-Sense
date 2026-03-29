@@ -88,12 +88,16 @@ function getHeaderImage(isDark: boolean) {
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { useLocation } from '../context/LocationContext';
+import CityPickerModal from '../components/modals/CityPickerModal';
 
 export default function AdviceScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const HEADER_H = 190;
+  const { selectedCity } = useLocation();
   const [inNetworkOpen, setInNetworkOpen] = React.useState(false);
+  const [cityPickerOpen, setCityPickerOpen] = React.useState(false);
   const [tips, setTips] = React.useState<ActionableTip[]>(ACTIONABLE_TIPS);
   const [risks, setRisks] = React.useState<RiskAnalysisItem[]>(RISK_ITEMS);
   const [forecast, setForecast] = React.useState('Moderate');
@@ -101,7 +105,7 @@ export default function AdviceScreen({ navigation }: Props) {
   React.useEffect(() => {
     async function fetchAdvice() {
       try {
-        const res = await fetch('http://localhost:8000/api/city/Tampa/summary');
+        const res = await fetch(`http://localhost:8000/api/city/${selectedCity}/summary`);
         if (res.ok) {
           const data = await res.json();
           
@@ -180,8 +184,8 @@ export default function AdviceScreen({ navigation }: Props) {
           <SafeAreaView edges={['top']} style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}>
             <View style={[styles.header, { height: HEADER_H }]}>
               <View style={styles.headerTopRow}>
-                <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
-                  <Text style={[styles.locationTxt, { color: theme.heading }]}>{t('common.current_location')}</Text>
+                <TouchableOpacity style={styles.locationPill} activeOpacity={0.7} onPress={() => setCityPickerOpen(true)}>
+                  <Text style={[styles.locationTxt, { color: theme.heading }]}>{selectedCity}</Text>
                   <Ionicons name="chevron-down" size={14} color={theme.heading} />
                 </TouchableOpacity>
                 <TouchableOpacity hitSlop={12}>
@@ -257,8 +261,8 @@ export default function AdviceScreen({ navigation }: Props) {
           <Text style={[styles.inNetworkSub, { color: theme.muted }]}>
             {t('advice.in_network_sub')}
           </Text>
-          <TouchableOpacity style={styles.inNetworkBtn} activeOpacity={0.85} onPress={() => setInNetworkOpen(true)}>
-            <Text style={styles.inNetworkBtnTxt}>{t('advice.in_network_btn')}</Text>
+          <TouchableOpacity style={[styles.inNetworkBtn, { backgroundColor: theme.primary, shadowColor: theme.primary }]} activeOpacity={0.85} onPress={() => setInNetworkOpen(true)}>
+            <Text style={[styles.inNetworkBtnTxt, { color: theme.primaryText }]}>{t('advice.in_network_btn')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -287,10 +291,10 @@ export default function AdviceScreen({ navigation }: Props) {
                 }
               }}
             >
-              <View style={tab.active ? styles.tabIconActive : styles.tabIconInactive}>
-                <Ionicons name={tab.icon} size={22} color={tab.active ? Colors.white : theme.tabIconInactive} />
+              <View style={[tab.active ? styles.tabIconActive : styles.tabIconInactive, tab.active && { backgroundColor: theme.primary }]}>
+                <Ionicons name={tab.icon} size={22} color={tab.active ? theme.primaryText : theme.tabIconInactive} />
               </View>
-              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.isDark ? '#FFFFFF' : Colors.indigo, fontFamily: FontFamily.semiBold }]}>
+              <Text style={[styles.tabLabel, { color: theme.tabIconInactive }, tab.active && { color: theme.primary, fontFamily: FontFamily.semiBold }]}>
                 {tab.label}
               </Text>
             </TouchableOpacity>
@@ -303,6 +307,7 @@ export default function AdviceScreen({ navigation }: Props) {
         onClose={() => setInNetworkOpen(false)}
         insurancePlan="Florida Blue"
       />
+      <CityPickerModal visible={cityPickerOpen} onClose={() => setCityPickerOpen(false)} />
     </View>
   );
 }

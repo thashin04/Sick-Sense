@@ -25,7 +25,7 @@ export default function TranscriptModal({ visible, onClose, transcript, duration
   console.log('[TranscriptModal] Rendering. Transcript length:', transcript?.length, 'Visible:', visible);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
         <View style={[styles.sheet, { backgroundColor: theme.surfaceModal, shadowColor: theme.shadowColor }]}>
