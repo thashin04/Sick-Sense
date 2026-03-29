@@ -4,6 +4,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { updateUserPreferences } from '../api/auth';
+import { triggerUserScan } from '../api/scanner';
 import IntakeLayout from '../components/IntakeLayout';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
@@ -57,6 +58,9 @@ export default function InsuranceScreen({ navigation }: Props) {
         
         // 3. Dispatch to backend
         await updateUserPreferences(user.uid, langStr, otc, insStr);
+
+        // 4. Trigger personalized health scan in the background
+        triggerUserScan(user.uid);
       }
     } catch (e) {
       console.warn("Error uploading preferences to backend: ", e);

@@ -292,12 +292,15 @@ _aggregator = Agent(
     model="gemini-3-flash-preview",
     description=(
         "Aggregates the parallel data collection results into a single, "
-        "comprehensive city health data report."
+        "comprehensive city health data report. Pay special attention to "
+        "any user-selected medications or insurance mentions in the prompt."
     ),
     instruction=(
         "You have just received the outputs from 9 parallel data-collection scouts. "
         "Your job is to compile ALL of their data into one thorough, well-organized "
         "health data report for the city.\n\n"
+        "If the user has specified preferred medicines or an insurance provider in their request, "
+        "be sure to highlight findings (like stock levels or coverage alerts) specifically for those items.\n\n"
         "Structure your report with these sections:\n"
         "1. **Pharmacy Stock Levels** — medication names, stock percentages\n"
         "2. **Pollen & Allergens** — pollen indices, risk level\n"
