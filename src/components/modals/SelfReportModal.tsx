@@ -9,6 +9,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, FontSize } from '../../theme';
@@ -26,6 +27,7 @@ export default function SelfReportModal({ visible, onClose }: Props) {
   const [reportType, setReportType] = useState<ReportType>(null);
   const [locationType, setLocationType] = useState<LocationType>('search-location');
   const [search, setSearch] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const REPORT_OPTIONS = [
     {
@@ -59,11 +61,41 @@ export default function SelfReportModal({ visible, onClose }: Props) {
     (locationType === 'my-location' || search.trim().length > 0);
 
   function handleClose() {
+    if (isSubmitting) return;
     setReportType(null);
     setLocationType('search-location');
     setSearch('');
     onClose();
   }
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const finalLocation = locationType === 'my-location' ? 'Tampa' : search.trim();
+
+      const res = await fetch('http://localhost:8000/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          report_type: reportType,
+          location_type: locationType,
+          location: finalLocation
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to submit report');
+      }
+
+      Alert.alert('Success', 'Thank you! Your report has been submitted anonymously.');
+      handleClose();
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
@@ -163,16 +195,13 @@ export default function SelfReportModal({ visible, onClose }: Props) {
 
             {/* Submit */}
             <TouchableOpacity
-              style={[styles.continueBtn, !canContinue && styles.continueBtnDisabled]}
-              disabled={!canContinue}
+              style={[styles.continueBtn, (!canContinue || isSubmitting) && styles.continueBtnDisabled]}
+              disabled={!canContinue || isSubmitting}
               activeOpacity={0.85}
-              onPress={() => {
-                // TODO: submit report to backend
-                handleClose();
-              }}
+              onPress={handleSubmit}
             >
-              <Text style={[styles.continueTxt, !canContinue && styles.continueTxtDisabled]}>
-                {t('common.submit')}
+              <Text style={[styles.continueTxt, (!canContinue || isSubmitting) && styles.continueTxtDisabled]}>
+                {isSubmitting ? 'Submitting...' : t('common.submit')}
               </Text>
             </TouchableOpacity>
           </TouchableOpacity>
