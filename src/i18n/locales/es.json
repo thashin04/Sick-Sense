@@ -1,0 +1,36 @@
+{
+  "common": {
+    "back": "Atrás",
+    "skip_for_now": "Omitir por ahora",
+    "continue": "Continuar"
+  },
+  "language": {
+    "title": "Seleccione su idioma",
+    "subtitle": "¿Cómo deberíamos comunicarnos?",
+    "search_placeholder": "Buscar idiomas..."
+  },
+  "medicine": {
+    "title": "Preferencias Médicas",
+    "subtitle": "Selecciona hasta 4 medicamentos de venta libre (opcional)",
+    "search_placeholder": "Buscar medicamentos...",
+    "items": {
+      "acetaminophen": { "name": "Paracetamol", "category": "Alivio del dolor" },
+      "ibuprofen": { "name": "Ibuprofeno", "category": "Alivio del dolor / Antiinflamatorio" },
+      "aspirin": { "name": "Aspirina", "category": "Alivio del dolor / Anticoagulante" },
+      "antihistamines": { "name": "Antihistamínicos", "category": "Alivio de alergias" },
+      "cough-syrup": { "name": "Jarabe para la tos", "category": "Alivio de resfriado y tos" },
+      "decongestant": { "name": "Descongestivo", "category": "Alivio nasal y sinusal" },
+      "antacid": { "name": "Antiácido", "category": "Alivio digestivo" },
+      "vitamins": { "name": "Vitaminas / Suplementos", "category": "Apoyo inmunológico" },
+      "throat-lozenges": { "name": "Pastillas para la garganta", "category": "Alivio de dolor de garganta" }
+    }
+  },
+  "insurance": {
+    "title": "Proveedor de Seguros",
+    "subtitle": "Ayúdenos a brindar información de salud personalizada (opcional)",
+    "search_placeholder": "Buscar seguro...",
+    "items": {
+      "none": "Sin seguro / Pago propio"
+    }
+  }
+}

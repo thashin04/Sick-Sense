@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "sick-sense-init",
+    "slug": "sick-sense-init",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.sicksenseinit"
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.sicksenseinit"
+    },
+    "web": {},
+    "plugins": [
+      "expo-font",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox"
+        }
+      ]
+    ]
+  }
+}
