@@ -9,7 +9,9 @@
     "delete": "Delete",
     "cancel": "Cancel",
     "submit": "Submit",
-    "call": "Call"
+    "call": "Call",
+    "logout": "Log out",
+    "save_close": "Save & Close"
   },
   "tabs": {
     "home": "Home",
@@ -68,13 +70,11 @@
     "language_region": "LANGUAGE & REGION",
     "language_label": "Language",
     "language_current": "English",
-    "privacy": "PRIVACY & SECURITY",
-    "data_privacy_label": "Data Privacy",
-    "data_privacy_sub": "Manage your permissions",
-    "delete_data_label": "Delete All Data",
-    "delete_data_sub": "Purge all account data",
-    "delete_confirm_title": "Delete All Data",
-    "delete_confirm_body": "This will permanently delete your account data. This action cannot be undone."
+    "account": "ACCOUNT",
+    "logout_label": "Log out",
+    "logout_sub": "End your current session",
+    "logout_confirm_title": "Log Out",
+    "logout_confirm_body": "Are you sure you want to log out of SickSense?"
   },
   "self_report": {
     "title": "Report Health Issue",

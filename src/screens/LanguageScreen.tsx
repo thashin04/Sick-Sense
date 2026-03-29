@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,6 +28,15 @@ export default function LanguageScreen({ navigation }: Props) {
     return lang.substring(0, 2);
   });
   const [search, setSearch] = useState('');
+  const [userAuth, setUserAuth] = useState<{ uid: string } | null>(null);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const auth = await AsyncStorage.getItem('@user_auth');
+      if (auth) setUserAuth(JSON.parse(auth));
+    }
+    checkAuth();
+  }, []);
 
   const filtered = LANGUAGES.filter(
     (l) =>
@@ -42,10 +51,25 @@ export default function LanguageScreen({ navigation }: Props) {
       searchPlaceholder={t('language.search_placeholder')}
       searchValue={search}
       onSearch={setSearch}
-      buttonLabel={t('common.continue')}
+      buttonLabel={userAuth ? (t('common.save_close') || 'Save & Close') : t('common.continue')}
       onButton={async () => {
         await AsyncStorage.setItem('@pref_language', selected);
-        navigation.navigate('Medicine');
+        
+        // Update backend if logged in
+        if (userAuth?.uid) {
+          try {
+            await fetch('http://localhost:8000/api/user/preferences', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ uid: userAuth.uid, language: selected }),
+            });
+          } catch (e) {
+            console.error('Failed to sync language to backend', e);
+          }
+          navigation.goBack();
+        } else {
+          navigation.navigate('Medicine');
+        }
       }}
     >
       {filtered.map((lang) => {

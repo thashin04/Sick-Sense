@@ -251,7 +251,7 @@ export default function DashboardScreen({ navigation }: Props) {
               });
             }
 
-            if (newRisks.length > 0) setRiskLevels(newRisks.slice(0, 3));
+            if (newRisks.length > 0) setRiskLevels(newRisks.slice(0, 2));
           }
 
           if (data.otc_stock) {

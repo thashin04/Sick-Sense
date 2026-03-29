@@ -32,8 +32,8 @@ def analyze_data_for_anomalies(raw_data: str) -> dict:
     return {
         "analysis_framework": {
             "pharmacy_signals": {
-                "description": "Check if OTC med stocks are below 50% of typical",
-                "threshold": "Stock < 50% typical = anomaly, < 30% = severe",
+                "description": "Check if OTC med stocks are below 25% of typical",
+                "threshold": "Stock < 25% typical = anomaly, < 10% = severe",
             },
             "hospital_signals": {
                 "description": "Check if hospital busyness exceeds typical by >30%",
@@ -237,7 +237,7 @@ _analysis_agent = Agent(
         "10. Once ALL checks pass, you MUST call save_risk_and_stock_to_db to persist specific data:\n"
         "    - Determine localized risk levels for Seasonal Flu and Common Cold. Return a dict with 'level' (Low/Moderate/High) and 'description' (short reasoning string like 'Elevated pollen count').\n"
         "    - Identify ANY other specific illnesses (e.g. COVID, stomach bug) and their risk levels (as a list of dicts with name, level, description).\n"
-        "    - Extract ALL OTC stock data provided by the Scout. Set status to 'Limited' if stock < 50%, else 'In Stock'. Include the absolute stock_level value.\n"
+        "    - Extract ALL OTC stock data provided by the Scout. Set status to 'Limited' ONLY if stock is critically low (< 25%), else use 'In Stock'. Include the absolute stock_level value.\n"
         "11. After saving, call the finalize_assessment tool with your "
         "    complete final assessment to lock it in and exit the loop.\n\n"
         "IMPORTANT: You MUST call finalize_assessment when done. Do NOT just output "

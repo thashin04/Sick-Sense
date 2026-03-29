@@ -10,6 +10,7 @@ import {
   PanResponder,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -276,18 +277,22 @@ export default function SettingsScreen({ navigation }: Props) {
   const [audioSpeed, setAudioSpeed] = useState(1.2);
   const [healthAlerts, setHealthAlerts] = useState(true);
 
-  function confirmDeleteData() {
+  function handleLogout() {
     Alert.alert(
-      t('settings.delete_confirm_title'),
-      t('settings.delete_confirm_body'),
+      t('settings.logout_confirm_title') || 'Log Out',
+      t('settings.logout_confirm_body') || 'Are you sure you want to log out of SickSense?',
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
-          text: t('common.delete'),
+          text: t('common.logout') || 'Log Out',
           style: 'destructive',
-          onPress: () => {
-            // TODO: call backend delete endpoint, then navigate to Landing
-            navigation.navigate('Landing');
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem('@user_auth');
+              navigation.replace('Landing');
+            } catch (e) {
+              console.error('Logout failed', e);
+            }
           },
         },
       ],
@@ -401,30 +406,18 @@ export default function SettingsScreen({ navigation }: Props) {
           </View>
         </Section>
 
-        {/* PRIVACY & SECURITY */}
-        <Section label={t('settings.privacy')}>
+        {/* ACCOUNT */}
+        <Section label={t('settings.account') || 'ACCOUNT'}>
           <View style={{ paddingVertical: 14 }}>
             <SettingActionRow
-              icon="shield-outline"
-              label={t('settings.data_privacy_label')}
-              subtitle={t('settings.data_privacy_sub')}
-              actionLabel={t('common.view')}
-              onPress={() => {
-                // TODO: open data privacy modal
-              }}
-            />
-          </View>
-          <Divider />
-          <View style={{ paddingVertical: 14 }}>
-            <SettingActionRow
-              icon="trash-outline"
+              icon="log-out-outline"
               iconBg="#FDECEA"
               iconColor={Colors.coral}
-              label={t('settings.delete_data_label')}
-              subtitle={t('settings.delete_data_sub')}
-              actionLabel={t('common.delete')}
+              label={t('settings.logout_label') || 'Log out'}
+              subtitle={t('settings.logout_sub') || 'End your current session'}
+              actionLabel={t('common.logout') || 'Log out'}
               actionColor={Colors.coral}
-              onPress={confirmDeleteData}
+              onPress={handleLogout}
             />
           </View>
         </Section>
