@@ -60,7 +60,7 @@ FEED_CONFIG = {
         "source": "pulsepoint",
         "snapshot": False,  # active + 100 recent
     },
-    "fort lauderdale": {
+    "fort_lauderdale": {
         "type": "pulsepoint",
         "agency_id": "10192",
         "source": "pulsepoint",

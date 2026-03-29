@@ -105,7 +105,7 @@ export default function AdviceScreen({ navigation }: Props) {
   React.useEffect(() => {
     async function fetchAdvice() {
       try {
-        const res = await fetch(`http://localhost:8000/api/city/${selectedCity}/summary`);
+        const res = await fetch(`http://localhost:8000/api/city/${encodeURIComponent(selectedCity)}/summary`);
         if (res.ok) {
           const data = await res.json();
           

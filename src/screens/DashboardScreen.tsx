@@ -184,7 +184,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const [quickTip, setQuickTip] = useState(QUICK_TIP);
   
   // Modern Expo Audio Player (Canary 55)
-  const player = useAudioPlayer(`http://localhost:8000/api/city/${selectedCity}/audio-report`);
+  const player = useAudioPlayer(`http://localhost:8000/api/city/${encodeURIComponent(selectedCity)}/audio-report`);
   const status = useAudioPlayerStatus(player);
 
   useEffect(() => {
@@ -234,8 +234,8 @@ export default function DashboardScreen({ navigation }: Props) {
 
         // Fetch summary and report in parallel for better performance and reliability
         const [sumRes, repRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/city/${selectedCity}/summary`),
-          fetch(`http://localhost:8000/api/city/${selectedCity}/daily-report`)
+          fetch(`http://localhost:8000/api/city/${encodeURIComponent(selectedCity)}/summary`),
+          fetch(`http://localhost:8000/api/city/${encodeURIComponent(selectedCity)}/daily-report`)
         ]).catch(err => {
           console.error('[Dashboard] Parallel fetch failed:', err);
           return [null, null];
