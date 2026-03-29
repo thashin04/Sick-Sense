@@ -26,10 +26,10 @@ export default function AppNavigator() {
         <Stack.Screen name="Medicine" component={MedicineScreen} />
         <Stack.Screen name="InsuranceProvider" component={InsuranceScreen} />
         <Stack.Screen name="Tutorial" component={TutorialScreen} />
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
-        <Stack.Screen name="Map" component={MapScreen} />
-        <Stack.Screen name="Advice" component={AdviceScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ animation: 'none' }} />
+        <Stack.Screen name="Map" component={MapScreen} options={{ animation: 'none' }} />
+        <Stack.Screen name="Advice" component={AdviceScreen} options={{ animation: 'none' }} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{ animation: 'none' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
