@@ -188,11 +188,41 @@ async def get_daily_tts_report(city: str):
     if not db:
         raise HTTPException(status_code=500, detail="Database uninitialized")
         
-    doc = db.collection("daily_tts_reports").document(city).get()
+    doc = db.collection("daily_tts_reports").document(city_cfg.name.lower()).get()
     if not doc.exists:
-        raise HTTPException(status_code=404, detail=f"No daily TTS script available for {city_cfg.name}")
+        print(f"[API] 404 - No daily TTS script for {city_cfg.name} (key: {city_cfg.name.lower()})")
+        raise HTTPException(status_code=404, detail=f"No daily TTS script available for {city_cfg.name} (searched key: '{city_cfg.name.lower()}')")
         
-    return doc.to_dict()
+    data = doc.to_dict()
+    print(f"[API] 200 - Found daily TTS script for {city_cfg.name} ({len(data.get('tts_script', ''))} chars)")
+    return data
+
+@app.get("/api/city/{city}/audio-report")
+async def get_audio_report(city: str):
+    """Generates a high-quality AI MP3 for the Daily Health Report."""
+    from backend.services.tts import synthesize_speech
+    from backend.config.cities import get_city
+    from fastapi.responses import Response
+
+    try:
+        city_cfg = get_city(city)
+        # Fetch script from DB first
+        from backend.db.firebase import init_firebase
+        db = init_firebase()
+        doc = db.collection("daily_tts_reports").document(city_cfg.name.lower()).get()
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="No transcript found to synthesize.")
+
+        script = doc.to_dict().get("tts_script", "")
+        if not script:
+            raise HTTPException(status_code=404, detail="Empty transcript.")
+
+        # Synthesize using Google Cloud TTS
+        audio_bytes = synthesize_speech(script, voice_name="en-US-Neural2-F")
+        return Response(content=audio_bytes, media_type="audio/mpeg")
+    except Exception as e:
+        print(f"[API] Audio synthesis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/scan/all")
 async def scan_all_cities():

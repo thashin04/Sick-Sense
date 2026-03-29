@@ -95,3 +95,4 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 ServiceAccountKey.json
+absolute-dahlia-483917-r0-1192f636e3a6.json

@@ -7,7 +7,12 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.sicksenseinit"
+      "bundleIdentifier": "com.anonymous.sicksenseinit",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      }
     },
     "android": {
       "predictiveBackGestureEnabled": false,
@@ -16,6 +21,7 @@
     "web": {},
     "plugins": [
       "expo-font",
+      "expo-audio",
       [
         "@rnmapbox/maps",
         {

@@ -52,17 +52,22 @@ async def process_city(city_key, city_cfg, client, db):
             print(f"[{datetime.now(timezone.utc).isoformat()}] [Scheduler] Failsafe scan error for {city_cfg.name}: {e}")
             return
             
-    # Compile prompt tailored specifically for Text-to-Speech synthesis
-    prompt = (
-        f"You are the SickSense Health Broadcaster. I have the JSON summary of "
-        f"the health and illness profile for {city_cfg.name} today:\n\n{json.dumps(summary)}\n\n"
-        f"Write a 2-3 sentence conversational brief that reads strictly like a "
-        f"helpful voice assistant talking to a user to tell them what illnesses "
-        f"are circulating in their specific area of {city_cfg.name} and what precautions they should take. "
-        f"Explicitly mention '{city_cfg.name}' so it is absolutely clear the report is localized for their city. "
-        f"Do not include any asterisks, bolding, special formatting, or intro/outro pleasantries that would sound unnatural when read via an automated Text-to-Speech system. "
-        f"Write ONLY what will be spoken aloud, word for word."
-    )
+    # System Prompt for the Advisor
+    prompt = f"""
+    You are the SickSense Health Advisor. Your goal is to provide a concise, natural, and helpful daily health report for {city_cfg.name}.
+    
+    CRITICAL INSTRUCTIONS FOR TEXT-TO-SPEECH:
+    - Write in a conversational, friendly tone.
+    - Use punctuation to create natural breathing pauses (e.g., use "..." for short pauses, or extra commas).
+    - Avoid complex jargon; speak like a caring human.
+    - Keep the total report under 40 words.
+    - Start with a friendly greeting like "Good morning!" or "Hi there!".
+    
+    Current Health Data:
+    {json.dumps(summary)}
+    
+    Write ONLY what will be spoken aloud, word for word. Do not include any asterisks, bolding, or special formatting.
+    """
 
     try:
         response = await client.aio.models.generate_content(
