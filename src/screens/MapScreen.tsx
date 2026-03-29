@@ -121,24 +121,56 @@ export default function MapScreen({ navigation }: Props) {
           const heatData = await heatRes.json();
           setHeatmapData(heatData);
           
-          // Set initial detailed area from the first city found (usually Tampa)
           if (heatData.features && heatData.features.length > 0) {
-            const firstFeature = heatData.features[0].properties;
-            setSelectedArea({
-              name: firstFeature.display_name || firstFeature.city,
-              city: firstFeature.city,
-              state: firstFeature.state || 'FL',
-              riskScore: firstFeature.risk_score || 0,
-              riskLevel: firstFeature.risk_level || 'Low',
-              transmissionRate: 1.0 + (firstFeature.weight * 0.5),
-              alerts: firstFeature.alerts || [],
-            });
+            const feature = heatData.features.find((f: any) => f.properties.city?.toLowerCase() === selectedCity.toLowerCase()) || heatData.features[0];
+            const weight = feature.properties.weight || 0.5;
+            fetchCityDetails(selectedCity, weight);
           }
         }
       } catch (err) {
         console.error('[Map] Failed to fetch data:', err);
       }
     }
+
+    async function fetchCityDetails(cityName: string, weight: number) {
+      try {
+        const res = await fetch(`http://localhost:8000/api/city/${encodeURIComponent(cityName)}/summary`);
+        if (res.ok) {
+          const data = await res.json();
+          let riskLvl = 'Low';
+          if (data.forecast) {
+            const match = data.forecast.match(/risk level is (\w+)/i);
+            if (match) riskLvl = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+          }
+          const alerts: any[] = [];
+          if (data.local_risk_levels) {
+            if (data.local_risk_levels.others) {
+              data.local_risk_levels.others.forEach((o: any) => {
+                alerts.push({ name: o.name || 'Alert', description: o.description, severity: (o.level || 'medium').toLowerCase() });
+              });
+            }
+            ['seasonal_flu', 'common_cold'].forEach(k => {
+              const v = data.local_risk_levels[k];
+              if (v && typeof v === 'object' && ['High', 'Severe', 'Moderate'].includes(v.level)) {
+                alerts.push({ name: k === 'seasonal_flu' ? 'Seasonal Flu' : 'Common Cold', description: v.description, severity: v.level.toLowerCase() });
+              }
+            });
+          }
+          setSelectedArea({
+            name: cityName,
+            city: cityName,
+            state: 'FL',
+            riskScore: weight * 10.0,
+            riskLevel: riskLvl as any,
+            transmissionRate: 1.0 + (weight * 0.5),
+            alerts
+          });
+        }
+      } catch (err) {
+        console.error('[Map] Failed to fetch city details:', err);
+      }
+    }
+
     fetchMapData();
   }, [selectedCity]);
 
@@ -159,32 +191,54 @@ export default function MapScreen({ navigation }: Props) {
           animationDuration: 1000,
         });
         
-        // Also update the selected area card
-        setSelectedArea({
-          name: feature.properties?.display_name || feature.properties?.city,
-          city: feature.properties?.city,
-          state: feature.properties?.state || 'FL',
-          riskScore: feature.properties?.risk_score || 0,
-          riskLevel: feature.properties?.risk_level || 'Low',
-          transmissionRate: 1.0 + (feature.properties?.weight * 0.5),
-          alerts: feature.properties?.alerts || [],
-        });
+        // Note: selectedArea update for camera movement removed to preserve detailed city stats
+        // the city stats are now fetched properly from the server.
       }
     }
   }, [selectedCity, heatmapData]);
 
-  const handleHeatmapPress = (event: any) => {
+  const handleHeatmapPress = async (event: any) => {
     if (event.features && event.features.length > 0) {
       const featureData = event.features[0].properties;
-      setSelectedArea({
-        name: featureData.display_name || featureData.city,
-        city: featureData.city,
-        state: featureData.state || 'FL',
-        riskScore: featureData.risk_score || 0,
-        riskLevel: featureData.risk_level || 'Low',
-        transmissionRate: 1.0 + (featureData.weight * 0.5),
-        alerts: featureData.alerts || [],
-      });
+      const weight = featureData.weight || 0.5;
+      const cityName = featureData.city || featureData.display_name;
+      
+      try {
+        const res = await fetch(`http://localhost:8000/api/city/${encodeURIComponent(cityName)}/summary`);
+        if (res.ok) {
+          const data = await res.json();
+          let riskLvl = 'Low';
+          if (data.forecast) {
+            const match = data.forecast.match(/risk level is (\w+)/i);
+            if (match) riskLvl = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+          }
+          const alerts: any[] = [];
+          if (data.local_risk_levels) {
+            if (data.local_risk_levels.others) {
+              data.local_risk_levels.others.forEach((o: any) => {
+                alerts.push({ name: o.name || 'Alert', description: o.description, severity: (o.level || 'medium').toLowerCase() });
+              });
+            }
+            ['seasonal_flu', 'common_cold'].forEach(k => {
+              const v = data.local_risk_levels[k];
+              if (v && typeof v === 'object' && ['High', 'Severe', 'Moderate'].includes(v.level)) {
+                alerts.push({ name: k === 'seasonal_flu' ? 'Seasonal Flu' : 'Common Cold', description: v.description, severity: v.level.toLowerCase() });
+              }
+            });
+          }
+          setSelectedArea({
+            name: cityName,
+            city: cityName,
+            state: 'FL',
+            riskScore: weight * 10.0,
+            riskLevel: riskLvl as any,
+            transmissionRate: 1.0 + (weight * 0.5),
+            alerts
+          });
+        }
+      } catch (e) {
+        console.error('Failed to fetch mapped city details on press', e);
+      }
     }
   };
 
@@ -350,8 +404,8 @@ export default function MapScreen({ navigation }: Props) {
               {selectedArea.city}, {selectedArea.state}  •  {t('map.tap_for_details')}
             </Text>
             <View style={styles.infoMeta}>
-              <View style={styles.riskDot} />
-              <Text style={styles.infoRiskTxt}>{t('map.high_risk')}</Text>
+              <View style={[styles.riskDot, { backgroundColor: scoreColor(selectedArea.riskScore) }]} />
+              <Text style={[styles.infoRiskTxt, { color: scoreColor(selectedArea.riskScore) }]}>{selectedArea.riskLevel} Risk</Text>
               <Text style={[styles.infoDivider, { color: theme.divider }]}>  |  </Text>
               <Text style={[styles.infoAlertsTxt, { color: theme.body }]}>
                 {t('map.active_alerts', { count: selectedArea.alerts.length })}
@@ -517,13 +571,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.coral,
     marginRight: 6,
   },
   infoRiskTxt: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.sm,
-    color: Colors.coral,
   },
   infoDivider: {
     fontFamily: FontFamily.regular,
