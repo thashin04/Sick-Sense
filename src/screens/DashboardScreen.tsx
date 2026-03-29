@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Image } from 'react-native';
 import SelfReportModal from '../components/modals/SelfReportModal';
 import TranscriptModal from '../components/modals/TranscriptModal';
 import HelpModal from '../components/modals/HelpModal';
@@ -63,6 +64,19 @@ const TRANSCRIPT =
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const BG_IMAGES = {
+  day: require('../assets/light-day.png'),
+  afternoon: require('../assets/light-afternoon.png'),
+  evening: require('../assets/light-evening.png'),
+};
+
+function getHeaderImage() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return BG_IMAGES.day;
+  if (h >= 12 && h < 17) return BG_IMAGES.afternoon;
+  return BG_IMAGES.evening;
+}
+
 function getGreeting(): string {
   const h = new Date().getHours();
   if (h < 12) return 'Good Morning';
@@ -93,16 +107,6 @@ function otcStatusColor(status: OtcItem['status']) {
   return '#EF4444';
 }
 
-function cloudPath(svgW: number, svgH: number, baseY: number, bumpH: number, n: number): string {
-  const bw = svgW / n;
-  let d = `M 0 ${svgH} L ${svgW} ${svgH} L ${svgW} ${baseY}`;
-  for (let i = n; i > 0; i--) {
-    const lx = (i - 1) * bw;
-    const px = lx + bw / 2;
-    d += ` Q ${px} ${baseY - bumpH} ${lx} ${baseY}`;
-  }
-  return d + ' Z';
-}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -126,8 +130,7 @@ const waveStyles = StyleSheet.create({
 
 export default function DashboardScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
-  const HEADER_H = 210;
-  const cloudSvgH = HEADER_H * 0.38;
+  const HEADER_H = 250;
 
   const [selfReportOpen, setSelfReportOpen] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -135,60 +138,45 @@ export default function DashboardScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      {/* ── Yellow header ── */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: Colors.sunlight }}>
-        <LinearGradient
-          colors={['#FFD980', Colors.sunlight]}
-          style={[styles.header, { height: HEADER_H }]}
-        >
-          {/* Top row */}
-          <View style={styles.headerTopRow}>
-            <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
-              <Text style={styles.locationTxt}>Current Location</Text>
-              <Ionicons name="chevron-down" size={14} color={Colors.indigo} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setHelpOpen(true)} hitSlop={12}>
-              <Ionicons name="information-circle-outline" size={26} color={Colors.indigo} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Greeting */}
-          <Text style={styles.dateText}>{formatDate(new Date())}</Text>
-          <Text style={styles.greeting} numberOfLines={2}>
-            {getGreeting()},{'\n'}Thashin
-          </Text>
-
-          {/* Cloud cutout */}
-          <Svg
-            width={width}
-            height={cloudSvgH}
-            style={{ position: 'absolute', bottom: -cloudSvgH * 0.08, left: 0 }}
-          >
-            <Path
-              d={cloudPath(width, cloudSvgH, cloudSvgH * 0.5, 32, 4)}
-              fill={Colors.babyBlue}
-              opacity={0.4}
-            />
-            <Path
-              d={cloudPath(width, cloudSvgH, cloudSvgH * 0.78, 28, 5)}
-              fill={Colors.lightMidBlue}
-            />
-            <Path
-              d={cloudPath(width, cloudSvgH, cloudSvgH, 26, 4)}
-              fill={Colors.cloudBlue}
-            />
-          </Svg>
-        </LinearGradient>
-      </SafeAreaView>
-
-      {/* ── Scrollable content ── */}
+      {/* ── Scrollable content (header scrolls with page) ── */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* ── Header ── */}
+        <View style={styles.headerContainer}>
+          <Image
+            source={getHeaderImage()}
+            style={{ width: '100%', height: HEADER_H + 110 }}
+            resizeMode="cover"
+          />
+          <SafeAreaView edges={['top']} style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}>
+            <View style={[styles.header, { height: HEADER_H }]}>
+              {/* Top row */}
+              <View style={styles.headerTopRow}>
+                <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
+                  <Text style={styles.locationTxt}>Current Location</Text>
+                  <Ionicons name="chevron-down" size={14} color={Colors.indigo} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setHelpOpen(true)} hitSlop={12}>
+                  <Ionicons name="information-circle-outline" size={26} color={Colors.indigo} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ flex: 1 }} />
+              {/* Greeting */}
+              <Text style={styles.dateText}>{formatDate(new Date())}</Text>
+              <Text style={styles.greeting} numberOfLines={2}>
+                {getGreeting()},{'\n'}Thashin
+              </Text>
+            </View>
+          </SafeAreaView>
+        </View>
+
+        <View style={styles.scrollInner}>
         {/* Daily Health Report */}
-        <View style={styles.card}>
+        <View style={[styles.card, { marginTop: 20 }]}>
           <Text style={styles.cardTitle}>Daily Health Report</Text>
           <TouchableOpacity
             style={styles.playerRow}
@@ -215,10 +203,7 @@ export default function DashboardScreen({ navigation }: Props) {
 
         {/* Self Report */}
         <View style={styles.card}>
-          <View style={styles.selfReportHeader}>
-            <Ionicons name="clipboard-outline" size={20} color={Colors.black} />
-            <Text style={styles.cardTitle}>  Self Report</Text>
-          </View>
+          <Text style={styles.cardTitle}>Self Report</Text>
           <Text style={styles.selfReportSub}>
             Report symptoms, sick contacts, or supply shortages
           </Text>
@@ -265,7 +250,7 @@ export default function DashboardScreen({ navigation }: Props) {
             {OTC_STORE}  ·  {OTC_DISTANCE}
           </Text>
         </View>
-        <View style={styles.card}>
+        <View style={[styles.card, { marginBottom: 32 }]}>
           {OTC_ITEMS.map((item, i) => (
             <View
               key={item.name}
@@ -290,6 +275,7 @@ export default function DashboardScreen({ navigation }: Props) {
         </View>
 
         <View style={{ height: 16 }} />
+        </View>
       </ScrollView>
 
       {/* ── Bottom Tab Bar ── */}
@@ -353,6 +339,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 12,
+    paddingBottom: 16,
     overflow: 'visible',
   },
   headerTopRow: {
@@ -379,17 +366,22 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontFamily: FontFamily.extraBold,
-    fontSize: 30,
+    fontSize: 40,
     color: Colors.indigo,
-    lineHeight: 36,
+    lineHeight: 50,
   },
+
+  // Header container — sized by the image (normal flow), content overlaid absolutely
+  headerContainer: {},
 
   // Scroll
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
+  scrollContent: {},
+  scrollInner: { paddingHorizontal: 16, paddingTop: 16 },
 
   // Card
   card: {
+    marginTop: 4 ,
     backgroundColor: Colors.white,
     borderRadius: 18,
     padding: 18,
@@ -471,6 +463,8 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     fontSize: FontSize.lg,
     color: Colors.indigo,
+    marginTop: 16,
+    marginBottom: 8,
   },
   sectionLink: {
     fontFamily: FontFamily.semiBold,
@@ -550,7 +544,7 @@ const styles = StyleSheet.create({
   tipCard: {
     backgroundColor: '#FFF8E1',
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     borderLeftWidth: 3,
     borderLeftColor: Colors.sunlight,
   },
