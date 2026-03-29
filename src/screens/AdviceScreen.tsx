@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Line, Circle, Text as SvgText, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Image } from 'react-native';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
 import InNetworkModal from '../components/modals/InNetworkModal';
@@ -172,17 +173,19 @@ function LineChart({ containerWidth }: { containerWidth: number }) {
   );
 }
 
-// ─── Cloud path helper (same as Dashboard) ───────────────────────────────────
+// ─── Dynamic Header Helper ───────────────────────────────────────────────────
 
-function cloudPath(svgW: number, svgH: number, baseY: number, bumpH: number, n: number): string {
-  const bw = svgW / n;
-  let d = `M 0 ${svgH} L ${svgW} ${svgH} L ${svgW} ${baseY}`;
-  for (let i = n; i > 0; i--) {
-    const lx = (i - 1) * bw;
-    const px = lx + bw / 2;
-    d += ` Q ${px} ${baseY - bumpH} ${lx} ${baseY}`;
-  }
-  return d + ' Z';
+const BG_IMAGES = {
+  day: require('../assets/light-day.png'),
+  afternoon: require('../assets/light-afternoon.png'),
+  evening: require('../assets/light-evening.png'),
+};
+
+function getHeaderImage() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return BG_IMAGES.day;
+  if (h >= 12 && h < 17) return BG_IMAGES.afternoon;
+  return BG_IMAGES.evening;
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -192,7 +195,6 @@ import React from 'react';
 export default function AdviceScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
   const HEADER_H = 190;
-  const cloudSvgH = HEADER_H * 0.38;
   const [inNetworkOpen, setInNetworkOpen] = React.useState(false);
 
   // Chart container width: screen - horizontal scroll padding (16*2) - card padding (18*2)
@@ -200,12 +202,14 @@ export default function AdviceScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      {/* ── Yellow header ── */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: Colors.sunlight }}>
-        <LinearGradient
-          colors={['#FFD980', Colors.sunlight]}
-          style={[styles.header, { height: HEADER_H }]}
-        >
+      <Image
+        source={getHeaderImage()}
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: HEADER_H + 110 }}
+        resizeMode="cover"
+      />
+      {/* ── Header ── */}
+      <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent' }}>
+        <View style={[styles.header, { height: HEADER_H }]}>
           <View style={styles.headerTopRow}>
             <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
               <Text style={styles.locationTxt}>Current Location</Text>
@@ -222,18 +226,7 @@ export default function AdviceScreen({ navigation }: Props) {
             <Text style={styles.riskWord}>Moderate</Text>
             {' '}today, Shin."
           </Text>
-
-          {/* Cloud cutout */}
-          <Svg
-            width={width}
-            height={cloudSvgH}
-            style={{ position: 'absolute', bottom: -cloudSvgH * 0.08, left: 0 }}
-          >
-            <Path d={cloudPath(width, cloudSvgH, cloudSvgH * 0.5, 32, 4)} fill={Colors.babyBlue} opacity={0.4} />
-            <Path d={cloudPath(width, cloudSvgH, cloudSvgH * 0.78, 28, 5)} fill={Colors.lightMidBlue} />
-            <Path d={cloudPath(width, cloudSvgH, cloudSvgH, 26, 4)} fill={Colors.cloudBlue} />
-          </Svg>
-        </LinearGradient>
+        </View>
       </SafeAreaView>
 
       {/* ── Content ── */}
