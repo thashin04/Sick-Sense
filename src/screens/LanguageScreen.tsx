@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import IntakeLayout from '../components/IntakeLayout';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Language'>;
@@ -20,7 +21,11 @@ const LANGUAGES = [
 ];
 
 export default function LanguageScreen({ navigation }: Props) {
-  const [selected, setSelected] = useState('en');
+  const { t, i18n } = useTranslation();
+  const [selected, setSelected] = useState(() => {
+    const lang = i18n.language || 'en';
+    return lang.substring(0, 2);
+  });
   const [search, setSearch] = useState('');
 
   const filtered = LANGUAGES.filter(
@@ -31,12 +36,12 @@ export default function LanguageScreen({ navigation }: Props) {
 
   return (
     <IntakeLayout
-      title="Select your language"
-      subtitle="How should we communicate?"
-      searchPlaceholder="Search languages..."
+      title={t('language.title')}
+      subtitle={t('language.subtitle')}
+      searchPlaceholder={t('language.search_placeholder')}
       searchValue={search}
       onSearch={setSearch}
-      buttonLabel="Continue"
+      buttonLabel={t('common.continue')}
       onButton={() => navigation.navigate('Medicine')}
     >
       {filtered.map((lang) => {
@@ -45,7 +50,10 @@ export default function LanguageScreen({ navigation }: Props) {
           <TouchableOpacity
             key={lang.id}
             style={[styles.card, isSelected && styles.cardSelected]}
-            onPress={() => setSelected(lang.id)}
+            onPress={() => {
+              setSelected(lang.id);
+              i18n.changeLanguage(lang.id);
+            }}
             activeOpacity={0.8}
           >
             <Image 

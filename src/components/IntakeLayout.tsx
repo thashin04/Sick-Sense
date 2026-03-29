@@ -12,6 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import CloudHeader from './CloudHeader';
 import { Colors, FontFamily, FontSize } from '../theme';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   title: string;
@@ -36,6 +37,7 @@ export default function IntakeLayout({
   onButton,
   children,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <StatusBar style="light" />
@@ -47,7 +49,7 @@ export default function IntakeLayout({
         {onBack && (
           <TouchableOpacity style={styles.back} onPress={onBack} hitSlop={12}>
             <Ionicons name="chevron-back" size={18} color={Colors.darkBlue} />
-            <Text style={styles.backTxt}>Back</Text>
+            <Text style={styles.backTxt}>{t('common.back')}</Text>
           </TouchableOpacity>
         )}
 

@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import IntakeLayout from '../components/IntakeLayout';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'InsuranceProvider'>;
@@ -25,22 +26,28 @@ const PROVIDERS = [
 ];
 
 export default function InsuranceScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
-  const filtered = PROVIDERS.filter((p) =>
+  const translatedProviders = PROVIDERS.map(p => ({
+    ...p,
+    name: p.id === 'none' ? t('insurance.items.none') : p.name
+  }));
+
+  const filtered = translatedProviders.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <IntakeLayout
-      title="Insurance Provider"
-      subtitle="Help us provide personalized health insights (optional)"
-      searchPlaceholder="Search insurance..."
+      title={t('insurance.title')}
+      subtitle={t('insurance.subtitle')}
+      searchPlaceholder={t('insurance.search_placeholder')}
       searchValue={search}
       onSearch={setSearch}
       onBack={() => navigation.goBack()}
-      buttonLabel={selected !== null ? 'Continue' : 'Skip for now'}
+      buttonLabel={selected !== null ? t('common.continue') : t('common.skip_for_now')}
       onButton={() => navigation.navigate('Tutorial')}
     >
       {filtered.map((provider) => {

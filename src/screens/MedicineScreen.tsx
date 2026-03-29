@@ -5,30 +5,38 @@ import { Ionicons } from '@expo/vector-icons';
 import IntakeLayout from '../components/IntakeLayout';
 import { Colors, FontFamily, FontSize } from '../theme';
 import { RootStackParamList } from '../types/navigation';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Medicine'>;
 };
 
-const MEDICINES = [
-  { id: 'acetaminophen', name: 'Acetaminophen', category: 'Pain Relief' },
-  { id: 'ibuprofen', name: 'Ibuprofen', category: 'Pain Relief / Anti-inflammatory' },
-  { id: 'aspirin', name: 'Aspirin', category: 'Pain Relief / Blood Thinner' },
-  { id: 'antihistamines', name: 'Antihistamines', category: 'Allergy Relief' },
-  { id: 'cough-syrup', name: 'Cough Syrup', category: 'Cold & Cough Relief' },
-  { id: 'decongestant', name: 'Decongestant', category: 'Nasal / Sinus Relief' },
-  { id: 'antacid', name: 'Antacid', category: 'Digestive Relief' },
-  { id: 'vitamins', name: 'Vitamins / Supplements', category: 'Immune Support' },
-  { id: 'throat-lozenges', name: 'Throat Lozenges', category: 'Sore Throat Relief' },
+const MEDICINE_IDS = [
+  'acetaminophen',
+  'ibuprofen',
+  'aspirin',
+  'antihistamines',
+  'cough-syrup',
+  'decongestant',
+  'antacid',
+  'vitamins',
+  'throat-lozenges',
 ];
 
 const MAX_SELECT = 4;
 
 export default function MedicineScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch] = useState('');
 
-  const filtered = MEDICINES.filter(
+  const translatedMedicines = MEDICINE_IDS.map((id) => ({
+    id,
+    name: t(`medicine.items.${id}.name`),
+    category: t(`medicine.items.${id}.category`),
+  }));
+
+  const filtered = translatedMedicines.filter(
     (m) =>
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.category.toLowerCase().includes(search.toLowerCase()),
@@ -44,13 +52,13 @@ export default function MedicineScreen({ navigation }: Props) {
 
   return (
     <IntakeLayout
-      title="Medicine Preferences"
-      subtitle={`Select up to ${MAX_SELECT} OTC medicines you use (optional)`}
-      searchPlaceholder="Search medicines..."
+      title={t('medicine.title')}
+      subtitle={t('medicine.subtitle')}
+      searchPlaceholder={t('medicine.search_placeholder')}
       searchValue={search}
       onSearch={setSearch}
       onBack={() => navigation.goBack()}
-      buttonLabel={selected.length > 0 ? 'Continue' : 'Skip for now'}
+      buttonLabel={selected.length > 0 ? t('common.continue') : t('common.skip_for_now')}
       onButton={() => navigation.navigate('InsuranceProvider')}
     >
       {filtered.map((med) => {
