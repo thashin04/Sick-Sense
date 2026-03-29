@@ -130,7 +130,7 @@ const waveStyles = StyleSheet.create({
 
 export default function DashboardScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
-  const HEADER_H = 210;
+  const HEADER_H = 250;
 
   const [selfReportOpen, setSelfReportOpen] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -138,41 +138,45 @@ export default function DashboardScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      <Image
-        source={getHeaderImage()}
-        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: HEADER_H + 110 }}
-        resizeMode="cover"
-      />
-      {/* ── Header ── */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent' }}>
-        <View style={[styles.header, { height: HEADER_H }]}>
-          {/* Top row */}
-          <View style={styles.headerTopRow}>
-            <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
-              <Text style={styles.locationTxt}>Current Location</Text>
-              <Ionicons name="chevron-down" size={14} color={Colors.indigo} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setHelpOpen(true)} hitSlop={12}>
-              <Ionicons name="information-circle-outline" size={26} color={Colors.indigo} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Greeting */}
-          <Text style={styles.dateText}>{formatDate(new Date())}</Text>
-          <Text style={styles.greeting} numberOfLines={2}>
-            {getGreeting()},{'\n'}Thashin
-          </Text>
-        </View>
-      </SafeAreaView>
-
-      {/* ── Scrollable content ── */}
+      {/* ── Scrollable content (header scrolls with page) ── */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* ── Header ── */}
+        <View style={styles.headerContainer}>
+          <Image
+            source={getHeaderImage()}
+            style={{ width: '100%', height: HEADER_H + 110 }}
+            resizeMode="cover"
+          />
+          <SafeAreaView edges={['top']} style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}>
+            <View style={[styles.header, { height: HEADER_H }]}>
+              {/* Top row */}
+              <View style={styles.headerTopRow}>
+                <TouchableOpacity style={styles.locationPill} activeOpacity={0.7}>
+                  <Text style={styles.locationTxt}>Current Location</Text>
+                  <Ionicons name="chevron-down" size={14} color={Colors.indigo} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setHelpOpen(true)} hitSlop={12}>
+                  <Ionicons name="information-circle-outline" size={26} color={Colors.indigo} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ flex: 1 }} />
+              {/* Greeting */}
+              <Text style={styles.dateText}>{formatDate(new Date())}</Text>
+              <Text style={styles.greeting} numberOfLines={2}>
+                {getGreeting()},{'\n'}Thashin
+              </Text>
+            </View>
+          </SafeAreaView>
+        </View>
+
+        <View style={styles.scrollInner}>
         {/* Daily Health Report */}
-        <View style={styles.card}>
+        <View style={[styles.card, { marginTop: 20 }]}>
           <Text style={styles.cardTitle}>Daily Health Report</Text>
           <TouchableOpacity
             style={styles.playerRow}
@@ -199,10 +203,7 @@ export default function DashboardScreen({ navigation }: Props) {
 
         {/* Self Report */}
         <View style={styles.card}>
-          <View style={styles.selfReportHeader}>
-            <Ionicons name="clipboard-outline" size={20} color={Colors.black} />
-            <Text style={styles.cardTitle}>  Self Report</Text>
-          </View>
+          <Text style={styles.cardTitle}>Self Report</Text>
           <Text style={styles.selfReportSub}>
             Report symptoms, sick contacts, or supply shortages
           </Text>
@@ -249,7 +250,7 @@ export default function DashboardScreen({ navigation }: Props) {
             {OTC_STORE}  ·  {OTC_DISTANCE}
           </Text>
         </View>
-        <View style={styles.card}>
+        <View style={[styles.card, { marginBottom: 32 }]}>
           {OTC_ITEMS.map((item, i) => (
             <View
               key={item.name}
@@ -274,6 +275,7 @@ export default function DashboardScreen({ navigation }: Props) {
         </View>
 
         <View style={{ height: 16 }} />
+        </View>
       </ScrollView>
 
       {/* ── Bottom Tab Bar ── */}
@@ -337,6 +339,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 12,
+    paddingBottom: 16,
     overflow: 'visible',
   },
   headerTopRow: {
@@ -363,17 +366,22 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontFamily: FontFamily.extraBold,
-    fontSize: 30,
+    fontSize: 40,
     color: Colors.indigo,
-    lineHeight: 36,
+    lineHeight: 50,
   },
+
+  // Header container — sized by the image (normal flow), content overlaid absolutely
+  headerContainer: {},
 
   // Scroll
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
+  scrollContent: {},
+  scrollInner: { paddingHorizontal: 16, paddingTop: 16 },
 
   // Card
   card: {
+    marginTop: 4 ,
     backgroundColor: Colors.white,
     borderRadius: 18,
     padding: 18,
@@ -455,6 +463,8 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     fontSize: FontSize.lg,
     color: Colors.indigo,
+    marginTop: 16,
+    marginBottom: 8,
   },
   sectionLink: {
     fontFamily: FontFamily.semiBold,
@@ -534,7 +544,7 @@ const styles = StyleSheet.create({
   tipCard: {
     backgroundColor: '#FFF8E1',
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     borderLeftWidth: 3,
     borderLeftColor: Colors.sunlight,
   },
