@@ -71,10 +71,6 @@ class UserPreferencesRequest(BaseModel):
     otc_medicine: list[str] | None = None
     insurance_provider: str | None = None
  
-class UserScanRequest(BaseModel):
-    uid: str
-
-
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok", "service": "sicksense", "timestamp": datetime.now(timezone.utc).isoformat()}
@@ -325,69 +321,3 @@ async def api_get_user_preferences(uid: str):
         return {"status": "success", "preferences": prefs}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
-async def run_personalized_scan(uid: str):
-    """Refined background task that pulls user preferences and triggers the agent."""
-    from backend.db.firebase import get_user_preferences
-    try:
-        # 1. Fetch preferences from Firestore
-        prefs = get_user_preferences(uid)
-        if not prefs:
-            print(f"[API] No preferences found for user {uid}. Skipping scan.")
-            return
-
-        # 2. Determine town/city (Defaulting to Orlando for now)
-        city = prefs.get("city", "Orlando")
-        city_cfg = get_city(city)
-
-        otc = prefs.get("otc_medicine", [])
-        insurance = prefs.get("insurance_provider", "None")
-
-        # 3. Setup the SickSense Agent Runner
-        orchestrator = create_orchestrator()
-        session_service = InMemorySessionService()
-        runner = Runner(
-            agent=orchestrator,
-            app_name="sicksense",
-            session_service=session_service,
-        )
-
-        session = await session_service.create_session(
-            app_name="sicksense",
-            user_id=uid,
-        )
-
-        # 4. Craft the personalized agent prompt
-        pref_context = ""
-        if otc:
-            pref_context += f" Tracking stock for: {', '.join(otc)}."
-        if insurance and insurance != "None":
-            pref_context += f" User insurance: {insurance}."
-
-        user_message = types.Content(
-            role="user",
-            parts=[types.Part(text=f"Scan {city_cfg.name}, Florida for health outbreaks.{pref_context} Run the full pipeline.")],
-        )
-
-        # 5. Execute pipeline to update database summaries
-        print(f"[API] Starting background personalized scan for user {uid} in {city_cfg.name}...")
-        async for _ in runner.run_async(
-            user_id=uid,
-            session_id=session.id,
-            new_message=user_message,
-        ):
-            pass # Run to completion
-
-        print(f"[API] Personalized scan for user {uid} completed successfully.")
-
-    except Exception as e:
-        print(f"[API] Background personalized scan for {uid} failed: {e}")
-
-@app.post("/api/scan/user")
-async def trigger_user_scan(request: UserScanRequest, background_tasks: BackgroundTasks):
-    """Endpoint called by mobile app after onboarding to start personalized data collection."""
-    background_tasks.add_task(run_personalized_scan, request.uid)
-    return {
-        "status": "accepted",
-        "message": "Personalized health scan started in background"
-    }
