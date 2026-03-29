@@ -56,8 +56,8 @@ HEALTH_LOCATIONS: list[MapMarker] = [
     {"id": "wal-gnv-archer", "name": "Walgreens (Archer Rd)", "type": "pharmacy", "city": "Gainesville", "coordinates": [-82.3845, 29.6245]},
 
     # --- FORT LAUDERDALE ---
-    {"id": "brow-general", "name": "Broward Health Medical Center", "type": "hospital", "city": "Fort Lauderdale", "coordinates": [-80.1405, 26.1085]},
-    {"id": "wal-ftl-sunrise", "name": "Walgreens (Sunrise Blvd)", "type": "pharmacy", "city": "Fort Lauderdale", "coordinates": [-80.1215, 26.1385]},
-    {"id": "cvs-ftl-federal", "name": "CVS Pharmacy (Federal Hwy)", "type": "pharmacy", "city": "Fort Lauderdale", "coordinates": [-80.1215, 26.0945]},
-    {"id": "wal-ftl-lasolas", "name": "Walgreens (Las Olas)", "type": "pharmacy", "city": "Fort Lauderdale", "coordinates": [-80.1385, 26.1185]},
+    {"id": "brow-general", "name": "Broward Health Medical Center", "type": "hospital", "city": "fort_lauderdale", "coordinates": [-80.1405, 26.1085]},
+    {"id": "wal-ftl-sunrise", "name": "Walgreens (Sunrise Blvd)", "type": "pharmacy", "city": "fort_lauderdale", "coordinates": [-80.1215, 26.1385]},
+    {"id": "cvs-ftl-federal", "name": "CVS Pharmacy (Federal Hwy)", "type": "pharmacy", "city": "fort_lauderdale", "coordinates": [-80.1215, 26.0945]},
+    {"id": "wal-ftl-lasolas", "name": "Walgreens (Las Olas)", "type": "pharmacy", "city": "fort_lauderdale", "coordinates": [-80.1385, 26.1185]},
 ]

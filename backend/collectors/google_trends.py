@@ -80,7 +80,7 @@ async def collect(city: str) -> GoogleTrendsReport:
                 trends.append(TrendsDataPoint(keyword=kw["label"], interest=0))
 
         report = GoogleTrendsReport(
-            city=city,
+            city=city_cfg.name.lower().replace(" ", "_"),
             timestamp=datetime.now(timezone.utc),
             trends=trends,
             source="pytrends",

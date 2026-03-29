@@ -28,7 +28,7 @@ const ALLOWED_CITIES = [
   { id: 'Tampa', label: 'Tampa, FL' },
   { id: 'Orlando', label: 'Orlando, FL' },
   { id: 'Miami', label: 'Miami, FL' },
-  { id: 'Fort Lauderdale', label: 'Fort Lauderdale, FL' },
+  { id: 'fort_lauderdale', label: 'Fort Lauderdale, FL' },
 ];
 
 export default function CityPickerModal({ visible, onClose }: Props) {

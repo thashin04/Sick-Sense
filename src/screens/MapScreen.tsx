@@ -122,7 +122,7 @@ export default function MapScreen({ navigation }: Props) {
           if (heatData.features && heatData.features.length > 0) {
             const firstFeature = heatData.features[0].properties;
             setSelectedArea({
-              name: firstFeature.city,
+              name: firstFeature.display_name || firstFeature.city,
               city: firstFeature.city,
               state: firstFeature.state || 'FL',
               riskScore: firstFeature.risk_score || 0,
@@ -143,7 +143,7 @@ export default function MapScreen({ navigation }: Props) {
     if (event.features && event.features.length > 0) {
       const featureData = event.features[0].properties;
       setSelectedArea({
-        name: featureData.city,
+        name: featureData.display_name || featureData.city,
         city: featureData.city,
         state: featureData.state || 'FL',
         riskScore: featureData.risk_score || 0,

@@ -181,7 +181,8 @@ async def get_map_locations(city: str | None = None):
     if city:
         try:
             city_cfg = get_city(city)
-            return [m for m in HEALTH_LOCATIONS if m["city"].lower() == city_cfg.name.lower()]
+            target_key = city.lower().replace(" ", "_")
+            return [m for m in HEALTH_LOCATIONS if m["city"].lower().replace(" ", "_") == target_key]
         except ValueError:
             return []
             
@@ -236,7 +237,8 @@ async def get_heatmap_data():
         features.append({
             "type": "Feature",
             "properties": {
-                "city": city_cfg.name,
+                "city": city_key,
+                "display_name": city_cfg.name,
                 "weight": weight
             },
             "geometry": {
